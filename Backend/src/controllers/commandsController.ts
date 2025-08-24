@@ -223,11 +223,9 @@ export const downloadsCommande = async (req: Request, res: Response): Promise<vo
             };
         });
 
-        // Définir les en-têtes pour le téléchargement CSV
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', 'attachment; filename=commandes.csv');
 
-        // Convertir en CSV (version simplifiée)
         let csv = 'Numéro Commande,Client,Email Client,Voiture,Prix Voiture,Statut,Montant,Frais Livraison,Montant Total,Mode Paiement,Date Commande,Date Livraison Prévue,Ville Livraison\n';
         
         dataForExport.forEach(row => {

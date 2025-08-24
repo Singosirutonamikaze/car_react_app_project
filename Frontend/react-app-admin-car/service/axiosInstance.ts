@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_BASE_URL } from './apiPath';
+import { API_BASE_URL } from '../utils/apiPath';
 
 let navigate = (_path?: string) => {};
 export const setNavigate = (navFn) => {

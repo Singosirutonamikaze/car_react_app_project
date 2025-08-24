@@ -1,24 +1,57 @@
 import React, { Component } from 'react';
 import { LuSave, LuX } from 'react-icons/lu';
 
-class AddCommandForm extends Component {
+class EditCommandForm extends Component {
     constructor(props) {
         super(props);
+
+        const command = props.command || {};
         this.state = {
-            voiture: '',
-            client: '',
-            montant: '',
-            fraisLivraison: '',
-            modePaiement: '',
+            _id: command._id || '',
+            voiture: command.voiture?._id || command.voiture || '',
+            client: command.client?._id || command.client || '',
+            montant: command.montant || '',
+            fraisLivraison: command.fraisLivraison || '',
+            modePaiement: command.modePaiement || '',
+            statut: command.statut || 'En attente',
             adresseLivraison: {
-                rue: '',
-                ville: '',
-                codePostal: '',
-                pays: 'TOGO'
+                rue: command.adresseLivraison?.rue || '',
+                ville: command.adresseLivraison?.ville || '',
+                codePostal: command.adresseLivraison?.codePostal || '',
+                pays: command.adresseLivraison?.pays || 'TOGO'
             },
-            dateLivraisonPrevue: '',
-            notes: ''
+            dateLivraisonPrevue: command.dateLivraisonPrevue ?
+                new Date(command.dateLivraisonPrevue).toISOString().split('T')[0] : '',
+            dateLivraisonReelle: command.dateLivraisonReelle ?
+                new Date(command.dateLivraisonReelle).toISOString().split('T')[0] : '',
+            notes: command.notes || ''
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.command !== this.props.command && this.props.command) {
+            const command = this.props.command;
+            this.setState({
+                _id: command._id || '',
+                voiture: command.voiture?._id || command.voiture || '',
+                client: command.client?._id || command.client || '',
+                montant: command.montant || '',
+                fraisLivraison: command.fraisLivraison || '',
+                modePaiement: command.modePaiement || '',
+                statut: command.statut || 'En attente',
+                adresseLivraison: {
+                    rue: command.adresseLivraison?.rue || '',
+                    ville: command.adresseLivraison?.ville || '',
+                    codePostal: command.adresseLivraison?.codePostal || '',
+                    pays: command.adresseLivraison?.pays || 'TOGO'
+                },
+                dateLivraisonPrevue: command.dateLivraisonPrevue ?
+                    new Date(command.dateLivraisonPrevue).toISOString().split('T')[0] : '',
+                dateLivraisonReelle: command.dateLivraisonReelle ?
+                    new Date(command.dateLivraisonReelle).toISOString().split('T')[0] : '',
+                notes: command.notes || ''
+            });
+        }
     }
 
     handleInputChange = (e) => {
@@ -38,31 +71,13 @@ class AddCommandForm extends Component {
 
     handleSubmit = (e) => {
         e.preventDefault();
-        if (this.props.onAddCommand) {
-            this.props.onAddCommand(this.state, this.resetForm);
+        if (this.props.onSave) {
+            this.props.onSave(this.state);
         }
     };
 
-    resetForm = () => {
-        this.setState({
-            voiture: '',
-            client: '',
-            montant: '',
-            fraisLivraison: '',
-            modePaiement: '',
-            adresseLivraison: {
-                rue: '',
-                ville: '',
-                codePostal: '',
-                pays: 'TOGO'
-            },
-            dateLivraisonPrevue: '',
-            notes: ''
-        });
-    };
-
     render() {
-        const { cars = [], clients = [] } = this.props;
+        const { cars = [], clients = [], onCancel } = this.props;
 
         return (
             <form onSubmit={this.handleSubmit} className="space-y-6">
@@ -110,7 +125,49 @@ class AddCommandForm extends Component {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label htmlFor="statut" className="block text-sm font-medium text-slate-100 mb-2">
+                            Statut *
+                        </label>
+                        <select
+                            id="statut"
+                            name="statut"
+                            value={this.state.statut}
+                            onChange={this.handleInputChange}
+                            className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600/30 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50"
+                            required
+                        >
+                            <option value="En attente">En attente</option>
+                            <option value="Confirmée">Confirmée</option>
+                            <option value="En cours">En cours</option>
+                            <option value="Livrée">Livrée</option>
+                            <option value="Annulée">Annulée</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label htmlFor="modePaiement" className="block text-sm font-medium text-slate-100 mb-2">
+                            Mode de paiement *
+                        </label>
+                        <select
+                            id="modePaiement"
+                            name="modePaiement"
+                            value={this.state.modePaiement}
+                            onChange={this.handleInputChange}
+                            className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600/30 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50"
+                            required
+                        >
+                            <option value="">Sélectionner un mode</option>
+                            <option value="Espèces">Espèces</option>
+                            <option value="Virement">Virement</option>
+                            <option value="Chèque">Chèque</option>
+                            <option value="Financement">Financement</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label htmlFor="montant" className="block text-sm font-medium text-slate-100 mb-2">
                             Montant (FCFA) *
@@ -144,26 +201,6 @@ class AddCommandForm extends Component {
                             className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600/30 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50"
                             placeholder="0"
                         />
-                    </div>
-
-                    <div>
-                        <label htmlFor="modePaiement" className="block text-sm font-medium text-slate-100 mb-2">
-                            Mode de paiement *
-                        </label>
-                        <select
-                            id="modePaiement"
-                            name="modePaiement"
-                            value={this.state.modePaiement}
-                            onChange={this.handleInputChange}
-                            className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600/30 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50"
-                            required
-                        >
-                            <option value="">Sélectionner un mode</option>
-                            <option value="Espèces">Espèces</option>
-                            <option value="Virement">Virement</option>
-                            <option value="Chèque">Chèque</option>
-                            <option value="Financement">Financement</option>
-                        </select>
                     </div>
                 </div>
 
@@ -237,18 +274,37 @@ class AddCommandForm extends Component {
                     </div>
                 </div>
 
-                <div>
-                    <label htmlFor="dateLivraisonPrevue" className="block text-sm font-medium text-slate-100 mb-2">
-                        Date de livraison prévue
-                    </label>
-                    <input
-                        type="date"
-                        id="dateLivraisonPrevue"
-                        name="dateLivraisonPrevue"
-                        value={this.state.dateLivraisonPrevue}
-                        onChange={this.handleInputChange}
-                        className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600/30 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50"
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label htmlFor="dateLivraisonPrevue" className="block text-sm font-medium text-slate-100 mb-2">
+                            Date de livraison prévue
+                        </label>
+                        <input
+                            type="date"
+                            id="dateLivraisonPrevue"
+                            name="dateLivraisonPrevue"
+                            value={this.state.dateLivraisonPrevue}
+                            onChange={this.handleInputChange}
+                            className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600/30 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50"
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="dateLivraisonReelle" className="block text-sm font-medium text-slate-100 mb-2">
+                            Date de livraison réelle
+                        </label>
+                        <input
+                            type="date"
+                            id="dateLivraisonReelle"
+                            name="dateLivraisonReelle"
+                            value={this.state.dateLivraisonReelle}
+                            onChange={this.handleInputChange}
+                            className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600/30 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50"
+                        />
+                        <p className="text-slate-400 text-xs mt-1">
+                            Remplir uniquement si la commande a été livrée
+                        </p>
+                    </div>
                 </div>
 
                 <div>
@@ -276,16 +332,16 @@ class AddCommandForm extends Component {
                         className="flex items-center gap-2 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-colors font-medium"
                     >
                         <LuSave className="text-lg" />
-                        Enregistrer la commande
+                        Sauvegarder les modifications
                     </button>
 
                     <button
                         type="button"
-                        onClick={this.resetForm}
+                        onClick={onCancel}
                         className="flex items-center gap-2 px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white rounded-lg transition-colors font-medium"
                     >
                         <LuX className="text-lg" />
-                        Réinitialiser
+                        Annuler
                     </button>
                 </div>
             </form>
@@ -293,4 +349,4 @@ class AddCommandForm extends Component {
     }
 }
 
-export default AddCommandForm;
+export default EditCommandForm;

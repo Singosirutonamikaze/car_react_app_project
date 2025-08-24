@@ -3,7 +3,6 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import { API_PATHS } from '../../utils/apiPath';
-import axiosInstance from '../../utils/axiosInstance';
 import DeleteAlert from '../components/alerts/DeleteAlert';
 import Model from '../components/models/Model';
 import EditCarsForm from '../components/Cars/EditCarsForm';
@@ -11,6 +10,7 @@ import AddCarsForm from '../components/Cars/AddCarsForm';
 import CarsChartsBar from '../components/charts/CarsChartsBar';
 import CarsList from '../components/Cars/CarsList';
 import { LuPlus } from 'react-icons/lu';
+import axiosInstance from '../../service/axiosInstance';
 
 class CarsPage extends Component {
   constructor(props) {

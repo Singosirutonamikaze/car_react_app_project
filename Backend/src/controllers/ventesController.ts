@@ -299,7 +299,6 @@ export const downloadVente = async (req: Request, res: Response): Promise<void> 
       .populate('client', 'name surname email')
       .populate('commande', 'statut montantTotal');
 
-    // Formater les données pour l'export CSV
     const dataForExport = ventes.map(vente => ({
       'Numéro Vente': vente._id,
       'Client': vente.client ? `${vente.client.name} ${vente.client.surname}` : '',
@@ -313,11 +312,9 @@ export const downloadVente = async (req: Request, res: Response): Promise<void> 
       'Commande Associée': vente.commande?._id || ''
     }));
 
-    // Définir les en-têtes pour le téléchargement CSV
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename=ventes.csv');
 
-    // Convertir en CSV
     let csv = 'Numéro Vente,Client,Email Client,Voiture,Prix de Vente,Statut,Date Vente,Date Paiement,Numéro Transaction,Commande Associée\n';
 
     dataForExport.forEach(row => {

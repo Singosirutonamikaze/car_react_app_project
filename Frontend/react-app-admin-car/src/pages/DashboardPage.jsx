@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../../utils/axiosInstance';
 import { API_PATHS } from '../../utils/apiPath';
 import { addThousandSeparator } from '../../utils/helper';
 import {
@@ -18,6 +17,7 @@ import InformationCardStats from '../components/cards/InformationCardStats';
 import StatsCardOverview from '../components/cards/StatsCardOverview';
 import DashboardOverviewStats from '../components/cards/DashboardOverviewStats';
 import LastCommandesChart from '../components/Dashboard/LastCommandesChart';
+import axiosInstance from '../../service/axiosInstance';
 
 const DashboardPage = () => {
   const navigate = useNavigate();

@@ -9,6 +9,7 @@ import ClientsPage from './pages/ClientsPage'
 import CarsPage from './pages/CarsPage'
 import SalesPage from './pages/SalesPage'
 import CommandsPage from './pages/CommandsPage'
+import { ToastContainer } from 'react-toastify'
 
 class App extends Component {
 
@@ -25,6 +26,18 @@ class App extends Component {
             <Route path="/sales" element={<SalesPage />} />
             <Route path="/orders" element={<CommandsPage />} />
           </Routes>
+          <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="slate"
+          />
         </div>
       </UserProvider>
     )

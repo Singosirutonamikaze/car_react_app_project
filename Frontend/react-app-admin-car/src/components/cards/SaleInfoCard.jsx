@@ -33,44 +33,46 @@ class SaleInfoCard extends Component {
         return (
             <div className="bg-slate-100/5 rounded-xl border border-slate-100/10 p-4 hover:bg-slate-100/10 transition-colors duration-200">
                 <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                    <div className="flex-1 flex items-center justify-around gap-4">
+                        <div className="">
+                            <h3 className="text-slate-100 font-semibold text-lg">
+                                {sale.voiture?.marque} {sale.voiture?.modelCar}
+                            </h3>
 
-                        <h3 className="text-slate-100 font-semibold text-lg">
-                            {sale.voiture?.marque} {sale.voiture?.modelCar}
-                        </h3>
+                            <p className="text-slate-300 text-sm mt-2">
+                                <span className="font-medium">Client:</span> {sale.client?.name} {sale.client?.surname}
+                            </p>
 
-                        <p className="text-slate-300 text-sm mt-2">
-                            <span className="font-medium">Client:</span> {sale.client?.name} {sale.client?.surname}
-                        </p>
+                            <p className="text-slate-300 text-sm mt-1">
+                                <span className="font-medium">Prix:</span> {addThousandSeparator(sale.prixVente || 0)} FCFA
+                            </p>
 
-                        <p className="text-slate-300 text-sm mt-1">
-                            <span className="font-medium">Prix:</span> {addThousandSeparator(sale.prixVente || 0)} FCFA
-                        </p>
-
-                        <div className="flex items-center mt-2">
-                            <span className="text-slate-300 text-sm font-medium mr-2">Statut:</span>
-                            <span className={`px-2 py-1 text-xs rounded-full ${this.getStatusBadgeClass(sale.statut)}`}>
-                                {sale.statut}
-                            </span>
+                            <div className="flex items-center mt-2">
+                                <span className="text-slate-300 text-sm font-medium mr-2">Statut:</span>
+                                <span className={`px-2 py-1 text-xs rounded-full ${this.getStatusBadgeClass(sale.statut)}`}>
+                                    {sale.statut}
+                                </span>
+                            </div>
                         </div>
+                        <div>
+                            {sale.numeroTransaction && (
+                                <p className="text-slate-400 text-xs mt-2">
+                                    <span className="font-medium">Transaction:</span> {sale.numeroTransaction}
+                                </p>
+                            )}
 
-                        {sale.numeroTransaction && (
-                            <p className="text-slate-400 text-xs mt-2">
-                                <span className="font-medium">Transaction:</span> {sale.numeroTransaction}
-                            </p>
-                        )}
+                            {sale.dateVente && (
+                                <p className="text-slate-400 text-xs mt-1">
+                                    <span className="font-medium">Date:</span> {this.formatDate(sale.dateVente)}
+                                </p>
+                            )}
 
-                        {sale.dateVente && (
-                            <p className="text-slate-400 text-xs mt-1">
-                                <span className="font-medium">Date:</span> {this.formatDate(sale.dateVente)}
-                            </p>
-                        )}
-
-                        {sale.notes && (
-                            <p className="text-slate-400 text-xs mt-2 truncate" title={sale.notes}>
-                                <span className="font-medium">Notes:</span> {sale.notes}
-                            </p>
-                        )}
+                            {sale.notes && (
+                                <p className="text-slate-400 text-xs mt-2 truncate" title={sale.notes}>
+                                    <span className="font-medium">Notes:</span> {sale.notes}
+                                </p>
+                            )}
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-2 ml-4">

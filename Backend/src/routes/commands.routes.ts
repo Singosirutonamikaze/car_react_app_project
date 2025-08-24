@@ -39,6 +39,7 @@ const commandeValidation = [
 
 // Routes
 router.get('/getAll', userProtect, getAllCommande);
+router.get('/admin/getAll', adminProtect, getAllCommande);
 
 router.post('/add', 
     userProtect, 
@@ -68,5 +69,7 @@ router.delete('/delete/:id',
 );
 
 router.get('/downloads', userProtect, downloadsCommande);
+
+router.get('/admin/downloads', adminProtect, downloadsCommande);
 
 export default router;

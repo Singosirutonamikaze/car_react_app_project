@@ -6,11 +6,11 @@ import { LuPlus } from 'react-icons/lu';
 import ClientsChartsLine from '../components/Clients/ClientsOverview';
 import ClientsList from '../components/Clients/ClientsList';
 import { API_PATHS } from '../../utils/apiPath';
-import axiosInstance from '../../utils/axiosInstance';
 import AddClientsForm from '../components/Clients/AddClientsForm';
 import EditClientsForm from '../components/Clients/EditClientsForm';
 import Model from '../components/models/Model';
 import DeleteAlert from '../components/alerts/DeleteAlert';
+import axiosInstance from '../../service/axiosInstance';
 
 class ClientsPage extends Component {
   constructor(props) {

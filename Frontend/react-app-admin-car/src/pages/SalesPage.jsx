@@ -4,13 +4,13 @@ import 'react-toastify/dist/ReactToastify.css';
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import { LuPlus } from 'react-icons/lu';
 import { API_PATHS } from '../../utils/apiPath';
-import axiosInstance from '../../utils/axiosInstance';
 import Model from '../components/models/Model';
 import AddSalesForm from '../components/Sales/AddSalesForm';
 import EditSalesForm from '../components/Sales/EditSalesForm';
 import DeleteAlert from '../components/alerts/DeleteAlert';
 import SalesCharts from '../components/charts/SalesCharts';
 import SalesList from '../components/Sales/SalesList';
+import axiosInstance from '../../service/axiosInstance';
 
 
 class SalesPage extends Component {
@@ -37,6 +37,7 @@ class SalesPage extends Component {
     this.fetchOptionsData();
   }
 
+
   fetchSalesData = async () => {
     if (this.state.loading) {
       return;
@@ -49,8 +50,42 @@ class SalesPage extends Component {
       );
 
       if (response.data) {
-        console.log("Données de ventes reçues:", response.data);
-        this.setState({ salesData: response.data });
+        console.log("=== DEBUGGING SALES DATA ===");
+        console.log("Réponse complète de l'API:", response);
+        console.log("response.data:", response.data);
+        console.log("Type de response.data:", typeof response.data);
+        console.log("Est un tableau?", Array.isArray(response.data));
+
+        if (response.data.data) {
+          console.log("response.data.data existe:", response.data.data);
+          console.log("Type de response.data.data:", typeof response.data.data);
+          console.log("response.data.data est un tableau?", Array.isArray(response.data.data));
+        }
+
+        let salesData;
+        if (Array.isArray(response.data)) {
+          salesData = response.data;
+          console.log("Utilisation de response.data directement");
+        } else if (response.data.data && Array.isArray(response.data.data)) {
+          salesData = response.data.data;
+          console.log("Utilisation de response.data.data");
+        } else if (response.data.sales && Array.isArray(response.data.sales)) {
+          salesData = response.data.sales;
+          console.log("Utilisation de response.data.sales");
+        } else {
+          console.error("Structure de données inattendue:", response.data);
+          salesData = [];
+        }
+
+        console.log("Données finales à stocker:", salesData);
+        console.log("Nombre de ventes:", salesData.length);
+
+        if (salesData.length > 0) {
+          console.log("Première vente:", salesData[0]);
+          console.log("Propriétés de la première vente:", Object.keys(salesData[0]));
+        }
+
+        this.setState({ salesData: salesData });
       }
     } catch (error) {
       console.log('Erreur de récupération des ventes :', error);
@@ -62,7 +97,6 @@ class SalesPage extends Component {
 
   fetchOptionsData = async () => {
     try {
-      // Récupérer les voitures, clients et commandes pour les formulaires
       const [carsResponse, clientsResponse, ordersResponse] = await Promise.all([
         axiosInstance.get(API_PATHS.CARS.GET_ALL),
         axiosInstance.get(API_PATHS.CLIENTS.GET_ALL),
@@ -83,7 +117,6 @@ class SalesPage extends Component {
   handleAddSale = async (sale) => {
     const { voiture, client, commande, prixVente, statut, dateVente, numeroTransaction, notes } = sale;
 
-    // Validation des champs obligatoires
     if (!voiture) {
       toast.error("La sélection d'une voiture est obligatoire.");
       return;
@@ -236,16 +269,16 @@ class SalesPage extends Component {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'ventes.pdf');
+      link.setAttribute('download', 'ventes.csv');
       document.body.appendChild(link);
       link.click();
       link.remove();
 
-      toast.success("PDF des ventes téléchargé avec succès.");
+      toast.success("CSV des ventes téléchargé avec succès.");
 
     } catch (error) {
       console.log('Erreur de téléchargement des ventes :', error);
-      toast.error("Erreur lors du téléchargement du PDF des ventes.");
+      toast.error("Erreur lors du téléchargement du CSV des ventes.");
     }
   };
 

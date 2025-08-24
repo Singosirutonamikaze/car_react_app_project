@@ -27,11 +27,11 @@ const API_PATHS = {
     DOWNLOAD: `/api/admin/cars/download`,
   },
   ORDERS: {
-    GET_ALL: `/api/admin/orders/getAll`,
+    GET_ALL: `/api/admin/orders/admin/getAll`,
     CREATE: `/api/admin/orders/add`,
     UPDATE: (orderId: string) => `/api/admin/orders/update/${orderId}`,
     DELETE: (orderId: string) => `/api/admin/orders/delete/${orderId}`,
-    DOWNLOAD: `/api/admin/orders/downloads`,
+    DOWNLOAD: `/api/admin/orders/admin/downloads`,
   },
   SALES: {
     GET_ALL: `/api/admin/ventes/get`,

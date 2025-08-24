@@ -4,8 +4,8 @@ import { Navigate } from 'react-router-dom';
 import Input from '../components/inputs/Input';
 import { validateEmail } from '../../utils/helper';
 import { API_PATHS } from '../../utils/apiPath';
-import axiosInstance from '../../utils/axiosInstance';
 import { UserContext } from '../../context/userContext';
+import axiosInstance from '../../service/axiosInstance';
 
 class Login extends Component {
   static contextType = UserContext;

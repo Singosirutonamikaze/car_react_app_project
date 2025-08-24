@@ -50,7 +50,7 @@ const CarInfoCard = ({ car, onEdit, onDelete }) => {
     };
 
     return (
-        <div className="bg-[#14066298] border border-gray-200/50 rounded-lg p-4 hover:shadow-md transition-shadow">
+            <div className="bg-slate-100/5 rounded-xl border border-slate-100/10 p-4 hover:bg-slate-100/10 transition-colors duration-200">
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center overflow-hidden">
@@ -114,8 +114,8 @@ const CarInfoCard = ({ car, onEdit, onDelete }) => {
                 </div>
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-3 mb-3">
-                <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+            <div className="bg-gray-50/15 rounded-lg p-3 mb-3">
+                <div className="grid grid-cols-2 gap-2 text-xs text-gray-50">
                     <div>
                         <span className="font-medium">Couleur:</span>
                         <br />
@@ -128,7 +128,7 @@ const CarInfoCard = ({ car, onEdit, onDelete }) => {
                     </div>
                 </div>
                 {car.description && (
-                    <div className="mt-2 text-xs text-gray-600">
+                    <div className="mt-2 text-xs text-gray-50">
                         <span className="font-medium">Description:</span>
                         <p className="mt-1 line-clamp-2">{car.description}</p>
                     </div>
