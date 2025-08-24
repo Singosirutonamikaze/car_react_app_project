@@ -1,5 +1,5 @@
 // utils/apiPath.js
-export const API_BASE_URL = "http://localhost:8000";
+export const API_BASE_URL = "https://car-app-backend-w29j.onrender.com";
 
 const API_PATHS = {
   DASHBOARD: {
