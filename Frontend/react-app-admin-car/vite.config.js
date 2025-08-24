@@ -8,9 +8,4 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
-  server: {
-    proxy: {
-      '/api': 'https://car-app-backend-w29j.onrender.com'
-    }
-  }
 })
