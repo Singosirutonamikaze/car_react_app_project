@@ -8,9 +8,9 @@ import ClientsList from '../components/Clients/ClientsList';
 import { API_PATHS } from '../../utils/apiPath';
 import axiosInstance from '../../utils/axiosInstance';
 import AddClientsForm from '../components/Clients/AddClientsForm';
+import EditClientsForm from '../components/Clients/EditClientsForm';
 import Model from '../components/models/Model';
 import DeleteAlert from '../components/alerts/DeleteAlert';
-
 
 class ClientsPage extends Component {
   constructor(props) {
@@ -18,11 +18,13 @@ class ClientsPage extends Component {
     this.state = {
       clientData: [],
       openClientModel: false,
+      openEditModel: false,
       loading: false,
       openDeleteAlert: {
         show: false,
         data: null
-      }
+      },
+      clientToEdit: null
     };
   }
 
@@ -46,7 +48,8 @@ class ClientsPage extends Component {
         this.setState({ clientData: response.data });
       }
     } catch (error) {
-      console.error('Erreur de récupération des clients :', error);
+      console.log('Erreur de récupération des clients :', error);
+      toast.error("Erreur lors de la récupération des clients.");
     } finally {
       this.setState({ loading: false });
     }
@@ -56,22 +59,22 @@ class ClientsPage extends Component {
     const { name, surname, email, password } = client;
 
     if (!name.trim()) {
-      toast.error("Le champ nom est obligatoire.")
+      toast.error("Le champ nom est obligatoire.");
       return;
     }
 
     if (!surname.trim()) {
-      toast.error("Le champ prénom est obligatoire.")
+      toast.error("Le champ prénom est obligatoire.");
       return;
     }
 
     if (!email.trim()) {
-      toast.error("Le champ email est obligatoire.")
+      toast.error("Le champ email est obligatoire.");
       return;
     }
 
     if (!password.trim()) {
-      toast.error("Le champ mot de passe est obligatoire.")
+      toast.error("Le champ mot de passe est obligatoire.");
       return;
     }
 
@@ -116,6 +119,113 @@ class ClientsPage extends Component {
     }
   };
 
+  handleEditClient = async (updatedClient) => {
+    const { name, surname, email, password } = updatedClient;
+
+    console.log(' DEBUG - Données reçues du formulaire:', updatedClient);
+
+    // Validation des champs obligatoires
+    if (!name.trim()) {
+      toast.error("Le champ nom est obligatoire.");
+      return;
+    }
+
+    if (!surname.trim()) {
+      toast.error("Le champ prénom est obligatoire.");
+      return;
+    }
+
+    if (!email.trim()) {
+      toast.error("Le champ email est obligatoire.");
+      return;
+    }
+
+    // Validation email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Veuillez entrer un email valide.");
+      return;
+    }
+
+    // Validation mot de passe (seulement s'il est fourni)
+    if (password && password.length < 6) {
+      toast.error("Le mot de passe doit contenir au moins 6 caractères.");
+      return;
+    }
+
+    try {
+
+      const cleanedData = {
+        _id: updatedClient._id,
+        name: name.trim(),
+        surname: surname.trim(),
+        email: email.trim(),
+      };
+
+      if (updatedClient.profileImageUrl) {
+        cleanedData.profileImageUrl = updatedClient.profileImageUrl;
+      }
+
+      if (password && password.trim()) {
+        cleanedData.password = password.trim();
+      }
+
+      console.log(' DEBUG - URL:', `${axiosInstance.defaults.baseURL}${API_PATHS.CLIENTS.UPDATE}`);
+      console.log(' DEBUG - Données nettoyées:', cleanedData);
+      console.log(' DEBUG - API_PATHS.CLIENTS.UPDATE:', API_PATHS.CLIENTS.UPDATE);
+
+      console.log(' Envoi de la requête PUT...');
+
+      const response = await axiosInstance.put(
+        API_PATHS.CLIENTS.UPDATE,
+        cleanedData
+      );
+
+      console.log('Réponse réussie:', response.data);
+
+      toast.success('Client modifié avec succès.');
+      this.fetchClientData();
+      this.setState({
+        openEditModel: false,
+        clientToEdit: null
+      });
+
+    } catch (error) {
+
+      console.group(' ERREUR DÉTAILLÉE');
+      console.log('Error object:', error);
+
+      if (error.response) {
+        console.log('Response status:', error.response.status);
+        console.log('Response statusText:', error.response.statusText);
+        console.log('Response data:', error.response.data);
+        console.log('Response headers:', error.response.headers);
+
+        const errorMessage = error.response.data?.message ||
+          error.response.data?.error ||
+          error.response.statusText;
+
+        toast.error(` Erreur ${error.response.status}: ${errorMessage}`);
+
+      } else if (error.request) {
+        console.log('Request made but no response:', error.request);
+        toast.error(' Pas de réponse du serveur');
+      } else {
+        console.log('Error setting up request:', error.message);
+        toast.error(`Erreur: ${error.message}`);
+      }
+
+      console.groupEnd();
+    }
+  };
+
+  openEditModal = (client) => {
+    this.setState({
+      openEditModel: true,
+      clientToEdit: client
+    });
+  };
+
   openDeleteAlert = (alertData) => {
     this.setState({ openDeleteAlert: alertData });
   };
@@ -128,7 +238,7 @@ class ClientsPage extends Component {
       toast.success("Client supprimé avec succès.");
       this.fetchClientData();
     } catch (error) {
-      console.error('Erreur de suppression du client :', error);
+      console.log('Erreur de suppression du client :', error);
       if (error.response && error.response.data && error.response.data.message) {
         toast.error(error.response.data.message);
       } else {
@@ -143,24 +253,24 @@ class ClientsPage extends Component {
         responseType: 'blob'
       });
 
-      // Créer un lien pour télécharger le fichier
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-
-      link.setAttribute('download', 'clients.xlsx');
+      link.setAttribute('download', 'clients.pdf');
       document.body.appendChild(link);
       link.click();
       link.remove();
 
+      toast.success("PDF des clients téléchargé avec succès.");
+
     } catch (error) {
-      console.error('Erreur de téléchargement des clients :', error);
-      toast.error("Erreur lors du téléchargement des clients.");
+      console.log('Erreur de téléchargement des clients :', error);
+      toast.error("Erreur lors du téléchargement du PDF des clients.");
     }
   };
 
   render() {
-    const { loading } = this.props;
+    const { loading } = this.state;
 
     if (loading) {
       return (
@@ -197,9 +307,13 @@ class ClientsPage extends Component {
             <ClientsList
               clients={this.state.clientData}
               onDeleteClient={client => this.setState({ openDeleteAlert: { show: true, data: client } })}
+              onEditClient={this.openEditModal}
+              onRefresh={this.fetchClientData}
+              onDownload={this.handleDownloadClients}
             />
           </div>
 
+          {/* Modal Ajouter Client */}
           <Model
             isOpen={this.state.openClientModel}
             onClose={() => this.setState({ openClientModel: false })}
@@ -208,11 +322,31 @@ class ClientsPage extends Component {
             <AddClientsForm onAddClient={async (client, resetForm) => {
               await this.handleAddClient(client);
               if (resetForm) {
-                resetForm()
-              };
+                resetForm();
+              }
             }} />
           </Model>
 
+          {/* Modal Modifier Client */}
+          <Model
+            isOpen={this.state.openEditModel}
+            onClose={() => this.setState({
+              openEditModel: false,
+              clientToEdit: null
+            })}
+            title="Modifier le client"
+          >
+            <EditClientsForm
+              client={this.state.clientToEdit}
+              onSave={this.handleEditClient}
+              onCancel={() => this.setState({
+                openEditModel: false,
+                clientToEdit: null
+              })}
+            />
+          </Model>
+
+          {/* Modal Supprimer Client */}
           <Model
             isOpen={this.state.openDeleteAlert.show}
             onClose={() => this.setState({ openDeleteAlert: { show: false, data: null } })}
@@ -220,20 +354,18 @@ class ClientsPage extends Component {
           >
             <DeleteAlert
               message={
-                this.state.openDeleteAlert.data
+                this.state.openDeleteAlert.data && this.state.openDeleteAlert.data.name
                   ? `Voulez-vous vraiment supprimer le client ${this.state.openDeleteAlert.data.name} ?`
                   : 'Voulez-vous vraiment supprimer ce client ?'
               }
               onDelete={() => {
-                if (this.state.openDeleteAlert.data) {
+                if (this.state.openDeleteAlert.data && this.state.openDeleteAlert.data._id) {
                   this.deleteClient(this.state.openDeleteAlert.data._id);
                 }
-                this.setState({ openDeleteAlert: { show: false, data: null } });
               }}
               onCancel={() => this.setState({ openDeleteAlert: { show: false, data: null } })}
             />
           </Model>
-
         </div>
       </DashboardLayout>
     );

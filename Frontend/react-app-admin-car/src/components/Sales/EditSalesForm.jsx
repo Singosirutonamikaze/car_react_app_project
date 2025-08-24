@@ -3,19 +3,34 @@ import Input from '../inputs/Input';
 import Select from '../inputs/Select';
 
 
-class AddSalesForm extends Component {
+class EditSalesForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      voiture: '',
-      client: '',
-      commande: '',
-      prixVente: '',
-      statut: 'En attente',
-      dateVente: new Date().toISOString().split('T')[0],
-      numeroTransaction: '',
-      notes: ''
+      voiture: props.sale?.voiture?._id || '',
+      client: props.sale?.client?._id || '',
+      commande: props.sale?.commande?._id || '',
+      prixVente: props.sale?.prixVente || '',
+      statut: props.sale?.statut || 'En attente',
+      dateVente: props.sale?.dateVente ? new Date(props.sale.dateVente).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      numeroTransaction: props.sale?.numeroTransaction || '',
+      notes: props.sale?.notes || ''
     };
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.sale !== this.props.sale && this.props.sale) {
+      this.setState({
+        voiture: this.props.sale.voiture?._id || '',
+        client: this.props.sale.client?._id || '',
+        commande: this.props.sale.commande?._id || '',
+        prixVente: this.props.sale.prixVente || '',
+        statut: this.props.sale.statut || 'En attente',
+        dateVente: this.props.sale.dateVente ? new Date(this.props.sale.dateVente).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        numeroTransaction: this.props.sale.numeroTransaction || '',
+        notes: this.props.sale.notes || ''
+      });
+    }
   }
 
   handleChange = (e) => {
@@ -24,8 +39,10 @@ class AddSalesForm extends Component {
 
   handleSubmit = (e) => {
     e.preventDefault();
-    if (this.props.onAddSale) {
-      this.props.onAddSale({
+    
+    if (this.props.onSave) {
+      const updatedSale = {
+        _id: this.props.sale._id,
         voiture: this.state.voiture,
         client: this.state.client,
         commande: this.state.commande,
@@ -34,25 +51,14 @@ class AddSalesForm extends Component {
         dateVente: this.state.dateVente,
         numeroTransaction: this.state.numeroTransaction,
         notes: this.state.notes
-      }, () => this.resetForm());
+      };
+
+      this.props.onSave(updatedSale);
     }
   };
 
-  resetForm() {
-    this.setState({
-      voiture: '',
-      client: '',
-      commande: '',
-      prixVente: '',
-      statut: 'En attente',
-      dateVente: new Date().toISOString().split('T')[0],
-      numeroTransaction: '',
-      notes: ''
-    });
-  }
-
   render() {
-    const { cars, clients, orders } = this.props;
+    const { cars, clients, orders, onCancel } = this.props;
 
     return (
       <form onSubmit={this.handleSubmit} className="flex flex-col gap-4">
@@ -145,15 +151,25 @@ class AddSalesForm extends Component {
           onChange={this.handleChange}
         />
         
-        <button
-          type="submit"
-          className="bg-violet-500 hover:bg-violet-600 text-white py-2 px-4 rounded"
-        >
-          Ajouter
-        </button>
+        <div className="flex gap-2 mt-4">
+          <button
+            type="submit"
+            className="bg-violet-500 hover:bg-violet-600 text-white py-2 px-4 rounded flex-1"
+          >
+            Sauvegarder
+          </button>
+          
+          <button
+            type="button"
+            onClick={onCancel}
+            className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded flex-1"
+          >
+            Annuler
+          </button>
+        </div>
       </form>
     );
   }
 }
 
-export default AddSalesForm;
+export default EditSalesForm;

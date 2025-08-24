@@ -1,42 +1,79 @@
-import React, { Component } from 'react'
-import { LuDownload } from 'react-icons/lu';
-import TransactionInfoCard from '../cards/TransactionInfoCard';
-import moment from 'moment';
+import React, { Component } from 'react';
+import { LuDownload, LuRefreshCw } from 'react-icons/lu';
+import CarInfoCard from '../cards/CarInfoCard';
 
+class CarsList extends Component {
+    constructor(props) {
+        super(props);
+        this.handleRefresh = this.handleRefresh.bind(this);
+        this.handleDownload = this.handleDownload.bind(this);
+    }
 
-class ExpenseList extends Component {
+    handleRefresh() {
+        console.log('Actualisation de la liste des voitures');
+        if (this.props.onRefresh) {
+            this.props.onRefresh();
+        }
+    }
+
+    handleDownload() {
+        console.log('Téléchargement des données voitures');
+        if (this.props.onDownload) {
+            this.props.onDownload();
+        }
+    }
+
     render() {
-        const { data = [], onDeleteExpense, onDownloadExpense } = this.props;
+        let { cars = [], onEditCar, onDeleteCar } = this.props;
+        // Support cars as { success, data, count } or as array
+        if (!Array.isArray(cars) && cars && Array.isArray(cars.data)) {
+            cars = cars.data;
+        }
+
         return (
-            <div className='card'>
-                <div className='flex items-center justify-between p-4 border-b border-gray-100/50'>
-                    <h4 className='text-lg font-semibold'>Listes des dépenses</h4>
-                    <button onClick={onDownloadExpense} className='card-btn  w-40 h-10 flex justify-around p-4 items-center gap-1 text-blue-600 hover:text-blue-800 transition'>
-                        <span className='font-bold'>Télécharger</span>
-                        <LuDownload className='text-base' />
-                    </button>
+            <div className="card bg-white rounded-lg shadow-md">
+                <div className="flex items-center justify-between p-4 border-b border-gray-100">
+                    <h4 className="text-lg font-semibold text-gray-800">
+                        Liste des Voitures ({cars.length})
+                    </h4>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={this.handleRefresh}
+                            className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                        >
+                            <LuRefreshCw className="text-base" />
+                            <span className="font-medium">Actualiser</span>
+                        </button>
+                        <button
+                            onClick={this.handleDownload}
+                            className="flex items-center gap-2 px-4 py-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors"
+                        >
+                            <LuDownload className="text-base" />
+                            <span className="font-medium">Télécharger</span>
+                        </button>
+                    </div>
                 </div>
-                <div className='grid grid-cols-1 md:grid-cols-2'>
-                    {data.length === 0 ? (
-                        <p className='text-gray-500'>Aucune dépense trouvée.</p>
+                <div className="p-4">
+                    {Array.isArray(cars) && cars.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                            <p>Aucune voiture trouvée</p>
+                        </div>
                     ) : (
-                        data.slice(0, 10).map((expense) => (
-                            <div className='mt-6' key={expense._id}>
-                                <TransactionInfoCard
-                                    title={expense.category}
-                                    icon={expense.icon}
-                                    date={expense.date ? moment(expense.date).format("DD MMM YYYY") : ''}
-                                    amount={expense.amount}
-                                    type='expense'
-                                    onDelete={() => onDeleteExpense(expense._id)}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {Array.isArray(cars) && cars.map(car => (
+                                <CarInfoCard
+                                    key={car._id}
+                                    car={car}
+                                    onEdit={() => onEditCar && onEditCar({ ...car, _id: car._id })}
+                                    onDelete={() => onDeleteCar && onDeleteCar(car)}
                                 />
-                            </div>
-                        ))
+                            ))}
+                        </div>
                     )}
                 </div>
             </div>
-        )
+        );
     }
 }
 
-export default ExpenseList;
+export default CarsList;

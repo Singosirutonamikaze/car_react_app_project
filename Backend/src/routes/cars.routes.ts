@@ -6,13 +6,15 @@ import {
   createCar,
   updateCar,
   deleteCar,
-  toggleCarAvailability
+  toggleCarAvailability,
+  downloadCars
 } from '../controllers/carsController';
 import { adminProtect } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
 router.get('/get', getAllCars);
+router.get('/download', adminProtect, downloadCars);
 router.get('/:id', getCarById);
 router.post('/create', adminProtect, createCar);
 router.put('/:id', adminProtect, updateCar);

@@ -4,108 +4,79 @@ import VenteModel from '../models/Vente';
 import CarModel from '../models/Car';
 import ClientModel from '../models/Client';
 
-// Define interfaces for populated documents to help TypeScript
-interface PopulatedClient {
-    _id: any;
-    name: string;
-    surname: string;
-    email: string;
-    phone?: string;
-    profileImageUrl?: string;
-}
-
-interface PopulatedVoiture {
-    _id: any;
-    marque: string;
-    model: string;
-    year: number;
-    price: number;
-    couleur: string;
-    ville?: string;
-}
-
-interface PopulatedCommande {
-    _id: any;
-    client: PopulatedClient;
-    voiture: PopulatedVoiture;
-    statut: string;
-    montant: number;
-    fraisLivraison?: number;
-    montantTotal: number;
-    dateCommande?: Date;
-    dateLivraisonPrevue?: Date;
-    createdAt?: Date;
-}
-
-interface PopulatedVente {
-    _id: any;
-    client: PopulatedClient;
-    voiture: PopulatedVoiture;
-    commande?: {
-        _id: any;
-        statut: string;
-        montantTotal: number;
-    };
-    prixVente: number;
-    statut: string;
-    dateVente?: Date;
-    datePaiement?: Date;
-    numeroTransaction?: string;
-    createdAt?: Date;
-}
-
 export const getDashboardData = async (req: Request, res: Response): Promise<void> => {
     try {
-        // Récupérer toutes les données séparément pour éviter les problèmes de type
+        console.log("Début de la récupération des données dashboard...");
+        
+        // Récupérer toutes les données séparément
         const clients = await ClientModel.find().select('-password').lean();
         const voitures = await CarModel.find().lean();
         const commandes = await CommandeModel.find()
             .populate('client', 'name surname email phone profileImageUrl')
             .populate('voiture', 'marque model year price couleur ville')
             .lean();
-        const ventesRaw = await VenteModel.find()
+        const ventes = await VenteModel.find()
             .populate('client', 'name surname email phone profileImageUrl')
             .populate('voiture', 'marque model year price couleur')
             .populate('commande', 'statut montantTotal')
             .lean();
-        
-        // Type assertion to bypass complex union type issues
-        const ventes = ventesRaw as any[] as PopulatedVente[];
 
-        // Calculer les statistiques
+        console.log(`Données récupérées - Clients: ${clients.length}, Voitures: ${voitures.length}, Commandes: ${commandes.length}, Ventes: ${ventes.length}`);
+
+        // Calculer les statistiques de base
         const totalClients = clients.length;
         const totalVoitures = voitures.length;
         const voituresDisponibles = voitures.filter((v: any) => v.disponible).length;
         const totalCommandes = commandes.length;
         const totalVentes = ventes.length;
         
-        // Revenu total (ventes payées) - using explicit typing
-        const revenueTotal = (ventes as any[])
-            .filter((v: any) => v.statut === 'Payée')
+        // Revenu total (toutes les ventes confirmées ou payées)
+        const revenueTotal = ventes
+            .filter((v: any) => v.statut === 'Payée' || v.statut === 'Confirmée')
             .reduce((sum: number, vente: any) => sum + (vente.prixVente || 0), 0);
 
-        // Commandes et ventes récentes (30 derniers jours)
+        // Période des 30 derniers jours
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        console.log(`Date de référence 30 jours: ${thirtyDaysAgo.toISOString()}`);
 
-        const commandesRecent = (commandes as any[])
-            .filter((c: any) => c.dateCommande && c.dateCommande >= thirtyDaysAgo)
+        // Commandes des 30 derniers jours (utiliser createdAt)
+        const commandesRecent = commandes
+            .filter((c: any) => {
+                const date = c.createdAt;
+                return date && new Date(date) >= thirtyDaysAgo;
+            })
             .sort((a: any, b: any) => {
-                const dateA = a.dateCommande || a.createdAt || new Date(0);
-                const dateB = b.dateCommande || b.createdAt || new Date(0);
-                return dateB.getTime() - dateA.getTime();
+                const dateA = a.createdAt || new Date(0);
+                const dateB = b.createdAt || new Date(0);
+                return new Date(dateB).getTime() - new Date(dateA).getTime();
             });
 
-        const ventesRecent = (ventes as any[])
-            .filter((v: any) => v.dateVente && v.dateVente >= thirtyDaysAgo)
+        // Ventes des 30 derniers jours (utiliser createdAt au lieu de dateVente)
+        const ventesRecent = ventes
+            .filter((v: any) => {
+                const date = v.createdAt; // Utiliser createdAt plutôt que dateVente
+                return date && new Date(date) >= thirtyDaysAgo;
+            })
             .sort((a: any, b: any) => {
-                const dateA = a.dateVente || a.createdAt || new Date(0);
-                const dateB = b.dateVente || b.createdAt || new Date(0);
-                return dateB.getTime() - dateA.getTime();
+                const dateA = a.createdAt || new Date(0);
+                const dateB = b.createdAt || new Date(0);
+                return new Date(dateB).getTime() - new Date(dateA).getTime();
             });
 
-        // Préparer les données de réponse avec type assertion pour éviter les erreurs de type complexe
-        const clientsListe = (clients as any[]).map((client: any) => ({
+        // Revenu des 30 derniers jours
+        const revenue30Jours = ventesRecent
+            .filter((v: any) => v.statut === 'Payée' || v.statut === 'Confirmée')
+            .reduce((sum: number, vente: any) => sum + (vente.prixVente || 0), 0);
+
+        // Log des dates des ventes pour le débogage
+        console.log("Dates de création des ventes:");
+        ventes.forEach((v: any) => {
+            console.log(`- Vente ${v._id}: ${v.createdAt}, statut: ${v.statut}, prix: ${v.prixVente}`);
+        });
+
+        // Préparer les données de réponse
+        const clientsListe = clients.map((client: any) => ({
             id: client._id,
             nom: client.name,
             prenom: client.surname,
@@ -113,7 +84,7 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
             profileImageUrl: client.profileImageUrl
         }));
 
-        const voituresListe = (voitures as any[]).map((voiture: any) => ({
+        const voituresListe = voitures.map((voiture: any) => ({
             id: voiture._id,
             marque: voiture.marque,
             modele: voiture.model,
@@ -124,8 +95,15 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
             disponible: voiture.disponible
         }));
 
-        const commandesRecentesListe = (commandesRecent as any[])
-            .filter((commande: any) => commande.client && commande.voiture) // Filter out commands with null populated fields
+        // Commandes récentes (toutes, pas seulement 30 jours)
+        const commandesRecentesListe = commandes
+            .filter((commande: any) => commande.client && commande.voiture)
+            .sort((a: any, b: any) => {
+                const dateA = a.dateCommande || a.createdAt || new Date(0);
+                const dateB = b.dateCommande || b.createdAt || new Date(0);
+                return new Date(dateB).getTime() - new Date(dateA).getTime();
+            })
+            .slice(0, 10)
             .map((commande: any) => ({
                 id: commande._id,
                 client: {
@@ -148,8 +126,15 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
                 dateLivraisonPrevue: commande.dateLivraisonPrevue
             }));
 
-        const ventesRecentesListe = (ventesRecent as any[])
-            .filter((vente: any) => vente.client && vente.voiture) // Filter out sales with null populated fields
+        // Ventes récentes (toutes, pas seulement 30 jours)
+        const ventesRecentesListe = ventes
+            .filter((vente: any) => vente.client && vente.voiture)
+            .sort((a: any, b: any) => {
+                const dateA = a.dateVente || a.createdAt || new Date(0);
+                const dateB = b.dateVente || b.createdAt || new Date(0);
+                return new Date(dateB).getTime() - new Date(dateA).getTime();
+            })
+            .slice(0, 10)
             .map((vente: any) => ({
                 id: vente._id,
                 client: {
@@ -174,10 +159,6 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
                 datePaiement: vente.datePaiement,
                 numeroTransaction: vente.numeroTransaction
             }));
-
-        const revenue30Jours = (ventesRecent as any[])
-            .filter((v: any) => v.statut === 'Payée')
-            .reduce((sum: number, vente: any) => sum + (vente.prixVente || 0), 0);
 
         const payload = {
             clients: {
@@ -205,9 +186,16 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
             }
         };
 
+        console.log("Données dashboard préparées avec succès");
+        console.log(`Résumé - Revenu total: ${revenueTotal}, Ventes 30j: ${ventesRecent.length}, Revenu 30j: ${revenue30Jours}`);
+
         res.status(200).json(payload);
     } catch (error) {
         console.error('Erreur de récupération des données dashboard:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ 
+            success: false,
+            message: 'Erreur interne du serveur',
+            error: error.message 
+        });
     }
 };

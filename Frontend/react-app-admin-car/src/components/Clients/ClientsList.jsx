@@ -29,13 +29,15 @@ class ClientsList extends Component {
         return (
             <div className="card bg-white rounded-lg shadow-md">
                 <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                    <h4 className="text-lg font-semibold text-gray-800">Liste des Clients</h4>
+                    <h4 className="text-lg font-semibold text-gray-800">
+                        Liste des Clients ({clients.length})
+                    </h4>
                     <div className="flex gap-2">
                         <button
                             onClick={this.handleRefresh}
                             className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
                         >
-                            <LuRefreshCw className="t/ format YYYY-MM-DDext-base" />
+                            <LuRefreshCw className="text-base" />
                             <span className="font-medium">Actualiser</span>
                         </button>
                         <button
@@ -48,20 +50,22 @@ class ClientsList extends Component {
                     </div>
                 </div>
 
-                <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4">
                     {clients.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
                             <p>Aucun client trouvé</p>
                         </div>
                     ) : (
-                        clients.map(client => (
-                            <ClientInfoCard
-                                key={client._id}
-                                client={client}
-                                onEdit={() => onEditClient && onEditClient(client)}
-                                onDelete={() => onDeleteClient && onDeleteClient(client)}
-                            />
-                        ))
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {clients.map(client => (
+                                <ClientInfoCard
+                                    key={client._id}
+                                    client={client}
+                                    onEdit={() => onEditClient && onEditClient({ ...client, _id: client._id })}
+                                    onDelete={() => onDeleteClient && onDeleteClient(client)}
+                                />
+                            ))}
+                        </div>
                     )}
                 </div>
             </div>

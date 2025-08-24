@@ -2,40 +2,42 @@ import React, { Component } from 'react';
 import ProfileModel from '../models/ProfileModel';
 import Input from '../inputs/Input';
 
-class AddCarsForm extends Component {
+class EditCarsForm extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            marque: '',
-            modelCar: '',
-            year: '',
-            price: '',
-            description: '',
-            couleur: '',
-            kilometrage: '',
-            carburant: '',
-            ville: '',
-            image: '',
+            marque: props.car?.marque || '',
+            modelCar: props.car?.modelCar || '',
+            year: props.car?.year || '',
+            price: props.car?.price || '',
+            description: props.car?.description || '',
+            couleur: props.car?.couleur || '',
+            kilometrage: props.car?.kilometrage || '',
+            carburant: props.car?.carburant || '',
+            ville: props.car?.ville || '',
+            image: props.car?.image || '',
             imageFile: null,
-            disponible: true
+            disponible: props.car?.disponible !== undefined ? props.car.disponible : true
         };
     }
 
-    resetForm() {
-        this.setState({
-            marque: '',
-            modelCar: '',
-            year: '',
-            price: '',
-            description: '',
-            couleur: '',
-            kilometrage: '',
-            carburant: '',
-            ville: '',
-            image: '',
-            imageFile: null,
-            disponible: true
-        });
+    componentDidUpdate(prevProps) {
+        if (prevProps.car !== this.props.car && this.props.car) {
+            this.setState({
+                marque: this.props.car.marque || '',
+                modelCar: this.props.car.modelCar || '',
+                year: this.props.car.year || '',
+                price: this.props.car.price || '',
+                description: this.props.car.description || '',
+                couleur: this.props.car.couleur || '',
+                kilometrage: this.props.car.kilometrage || '',
+                carburant: this.props.car.carburant || '',
+                ville: this.props.car.ville || '',
+                image: this.props.car.image || '',
+                imageFile: null,
+                disponible: this.props.car.disponible !== undefined ? this.props.car.disponible : true
+            });
+        }
     }
 
     handleChange = (e) => {
@@ -58,8 +60,9 @@ class AddCarsForm extends Component {
 
     handleSubmit = (e) => {
         e.preventDefault();
-        if (this.props.onAddCar) {
-            this.props.onAddCar({
+        if (this.props.onSave) {
+            const updatedCar = {
+                _id: this.props.car._id,
                 marque: this.state.marque,
                 modelCar: this.state.modelCar,
                 year: this.state.year,
@@ -72,7 +75,8 @@ class AddCarsForm extends Component {
                 image: this.state.image || null,
                 imageFile: this.state.imageFile || null,
                 disponible: this.state.disponible
-            }, () => this.resetForm());
+            };
+            this.props.onSave(updatedCar);
         }
     };
 
@@ -82,7 +86,10 @@ class AddCarsForm extends Component {
 
         return (
             <form onSubmit={this.handleSubmit} className="flex flex-col gap-4">
-                <ProfileModel onChange={this.handleImageChange} />
+                <ProfileModel
+                    onChange={this.handleImageChange}
+                    initialImage={this.state.image}
+                />
 
                 <Input
                     type="text"
@@ -212,15 +219,24 @@ class AddCarsForm extends Component {
                     <label className="text-white text-sm">Disponible</label>
                 </div>
 
-                <button
-                    type="submit"
-                    className="bg-violet-500 hover:bg-violet-600 text-white py-2 px-4 rounded"
-                >
-                    Ajouter
-                </button>
+                <div className="flex gap-2 mt-4">
+                    <button
+                        type="submit"
+                        className="bg-violet-500 hover:bg-violet-600 text-white py-2 px-4 rounded flex-1"
+                    >
+                        Sauvegarder
+                    </button>
+                    <button
+                        type="button"
+                        onClick={this.props.onCancel}
+                        className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded flex-1"
+                    >
+                        Annuler
+                    </button>
+                </div>
             </form>
         );
     }
 }
 
-export default AddCarsForm;
+export default EditCarsForm;

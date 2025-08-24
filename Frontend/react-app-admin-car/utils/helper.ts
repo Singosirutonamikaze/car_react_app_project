@@ -23,3 +23,4 @@ export const prepareCommandeBarChartData = (data) => {
         month: new Date(item.dateCommande).toLocaleString('default', { month: 'long' }),
     }));
 };
+

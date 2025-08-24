@@ -1,3 +1,4 @@
+// controllers/clients.controller.js
 import { Request, Response } from 'express';
 import UserModel from '../models/Client';
 import generateToken from '../utils/generateToken';
@@ -53,23 +54,25 @@ export const createClient = async (req: Request, res: Response): Promise<void> =
 
 export const updateClient = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { id } = req.params;
-        const updates = req.body;
+        const { _id, ...updates } = req.body; 
 
-        if (!id) {
+        console.log('Données reçues:', req.body);
+        console.log('ID client:', _id);
+        console.log('Updates:', updates);
+
+        if (!_id) {
             res.status(400).json({
                 message: 'ID du client requis'
             });
             return;
         }
 
-        // Ne pas permettre la modification du mot de passe via cette route
-        if (updates.password) {
+        if (updates.password === '' || updates.password === undefined) {
             delete updates.password;
         }
 
         const client = await UserModel.findByIdAndUpdate(
-            id, 
+            _id, 
             updates, 
             { new: true, runValidators: true }
         ).select('-password');
@@ -81,6 +84,7 @@ export const updateClient = async (req: Request, res: Response): Promise<void> =
             return;
         }
 
+        console.log('Client mis à jour:', client);
         res.json(client);
     } catch (error) {
         console.error("Erreur lors de la mise à jour du client :", error);
@@ -112,5 +116,61 @@ export const deleteClient = async (req: Request, res: Response): Promise<void> =
     } catch (error) {
         console.error("Erreur lors de la suppression du client :", error);
         res.status(500).json({ message: 'Erreur interne du serveur.' });
+    }
+};
+
+export const downloadClientsPDF = async (_req: Request, res: Response): Promise<void> => {
+    try {
+        const clients = await UserModel.find().select('-password');
+        
+        const PDFDocument = require('pdfkit');
+        const doc = new PDFDocument();
+        
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=clients.pdf');
+      
+        doc.pipe(res);
+        
+        doc.fontSize(20).text('Liste des Clients', 50, 50);
+        doc.moveDown(2);
+        
+        // Headers du tableau
+        doc.fontSize(12);
+        let yPosition = 120;
+        doc.text('Nom', 50, yPosition);
+        doc.text('Prénom', 150, yPosition);
+        doc.text('Email', 250, yPosition);
+        doc.text('Date création', 400, yPosition);
+        
+        // Ligne de séparation
+        doc.moveTo(50, yPosition + 20).lineTo(550, yPosition + 20).stroke();
+        yPosition += 30;
+
+        clients.forEach((client, index) => {
+            if (yPosition > 700) { 
+                doc.addPage();
+                yPosition = 50;
+            }
+            
+            doc.text(client.name || 'N/A', 50, yPosition);
+            doc.text(client.surname || 'N/A', 150, yPosition);
+            doc.text(client.email || 'N/A', 250, yPosition);
+            doc.text(
+                client.createdAt ? new Date(client.createdAt).toLocaleDateString('fr-FR') : 'N/A', 
+                400, 
+                yPosition
+            );
+            
+            yPosition += 25;
+        });
+
+        doc.fontSize(10).text(`Total: ${clients.length} clients`, 50, yPosition + 20);
+        doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}`, 50, yPosition + 35);
+        
+        doc.end();
+        
+    } catch (error) {
+        console.error("Erreur lors de la génération du PDF :", error);
+        res.status(500).json({ message: 'Erreur lors de la génération du PDF.' });
     }
 };

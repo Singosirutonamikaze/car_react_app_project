@@ -213,7 +213,7 @@ const DashboardPage = () => {
             </div>
             {
               dashboardData?.ventes?.recentes?.length > 0 ? (
-                <div className="space-y-3 max-h-80 overflow-y-auto">
+                <div className="space-y-3 max-h-full overflow-y-auto">
                   {dashboardData?.ventes?.recentes?.slice(0, 5).map((vente, index) => (
                     <div key={index} className="flex items-center justify-between p-3 
                                                            bg-slate-100/5 rounded-xl border border-slate-100/5
@@ -241,7 +241,7 @@ const DashboardPage = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-slate-300 text-2xl flex items-center justify-center mt-40">Aucune vente récente</p>
+                <p className="text-slate-300 text-2xl  flex items-center justify-center mt-20">Aucune vente récente</p>
               )
             }
           </div>
