@@ -204,7 +204,7 @@ class SalesPage extends Component {
         notes: notes || null
       };
 
-      const response = await axiosInstance.put(
+      await axiosInstance.put(
         API_PATHS.SALES.UPDATE(_id),
         cleanedData
       );

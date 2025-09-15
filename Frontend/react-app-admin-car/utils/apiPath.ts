@@ -1,5 +1,11 @@
-// utils/apiPath.js
-export const API_BASE_URL = "https://car-app-backend-w29j.onrender.com";
+export const API_BASE_URL ="https://car-app-backend-w29j.onrender.com";
+
+export const API_CONFIG = {
+  BASE_URL: API_BASE_URL,
+  TIMEOUT: 60000, 
+  RETRY_ATTEMPTS: 3,
+  RETRY_DELAY: 1000,
+};
 
 const API_PATHS = {
   DASHBOARD: {
@@ -45,7 +51,10 @@ const API_PATHS = {
   },
   UPLOADS: {
     GET_IMAGE: (filename: string) => `/uploads/${filename}`,
-  } 
+  },
+  // Nouvelles routes utiles
+  HEALTH: '/health',
+  PING: '/ping',
 };
 
 export { API_PATHS };

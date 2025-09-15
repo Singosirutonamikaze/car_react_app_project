@@ -1,5 +1,5 @@
+import axiosInstance from "../service/axiosInstance";
 import { API_PATHS } from "./apiPath";
-import axiosInstance from "./axiosInstance";
 
 class UploadImage {
     static async uploadImage(imageFile: File) {

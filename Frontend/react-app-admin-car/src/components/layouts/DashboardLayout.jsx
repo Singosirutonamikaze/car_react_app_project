@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { UserContext } from '../../../context/userContext';
+import  UserContext from '../../../context/userContext';
 import Navbar from './NavBar';
 import Sidebar from './SideBar';
 

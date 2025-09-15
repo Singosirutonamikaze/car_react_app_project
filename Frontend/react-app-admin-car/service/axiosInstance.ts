@@ -40,7 +40,7 @@ axiosInstance.interceptors.response.use(
         return response;
     },
     (error) => {
-        console.error('Axios Response Error:', error);
+        console.log('Axios Response Error:', error);
         
         if (error.response) {
             const { status } = error.response;

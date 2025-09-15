@@ -1,6 +1,5 @@
 import { Component } from 'react'
 import './index.css'
-import UserProvider from '../context/userContext'
 import { Routes, Route } from 'react-router-dom'
 import Rout from './pages/Rout'
 import Login from './auth/Login'
@@ -10,6 +9,7 @@ import CarsPage from './pages/CarsPage'
 import SalesPage from './pages/SalesPage'
 import CommandsPage from './pages/CommandsPage'
 import { ToastContainer } from 'react-toastify'
+import UserProvider from '../context/UserProvider'
 
 class App extends Component {
 

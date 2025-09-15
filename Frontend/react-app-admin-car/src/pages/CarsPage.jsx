@@ -329,7 +329,7 @@ class CarsPage extends Component {
           const errorData = JSON.parse(errorText);
           toast.error(errorData.message || "Erreur lors du téléchargement");
         } catch (e) {
-          toast.error("Erreur inconnue lors de la génération du PDF");
+          toast.error("Erreur inconnue lors de la génération du PDF", e.message);
         }
       } else {
         toast.error(error.message || "Erreur lors du téléchargement du PDF");

@@ -26,10 +26,10 @@ const AuthLayout = ({ children }) => {
     return (
         <div className='flex bg-gray-900'>
 
-            <div className='hidden md:block w-1/2 flex-1 h-screen bg-gray-800 bg-auth-bg-img bg-cover bg-no-repeat bg-center overflow-hidden p-8 relative shadow-none'>
-                <div className='w-48 h-48 rounded-[40px] bg-blue-600 absolute -top-7 -right-5' />
-                <div className='w-48 h-56 rounded-[40px] border-[20px] border-blue-600 absolute top-[25%] -left-10' />
-                <div className='w-48 h-48 rounded-[40px] bg-blue-500 absolute -bottom-7 -right-5' />
+            <div className='hidden md:block w-1/2 flex-1 h-screen bg-slate-900/200 bg-auth-bg-img bg-cover bg-no-repeat bg-center overflow-hidden p-8 relative shadow-none'>
+                <div className='w-48 h-48 rounded-[40px] bg-violet-600 absolute -top-7 -right-5' />
+                <div className='w-48 h-56 rounded-[40px] border-[20px] border-violet-600 absolute top-[25%] -left-10' />
+                <div className='w-48 h-48 rounded-[40px] bg-violet-500 absolute -bottom-7 -right-5' />
                 <div className='grid grid-cols-1 z-20 absolute top-16 left-8'>
                     <StatsInfoCard
                         icon={<LuTrendingUpDown />}

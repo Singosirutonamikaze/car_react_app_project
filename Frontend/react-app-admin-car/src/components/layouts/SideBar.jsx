@@ -1,15 +1,15 @@
 import React, { useContext, useEffect, useState } from 'react';
 import gsap from 'gsap';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { SIDE_MENU_DATA } from '../../../utils/data';
 import CardAvatar from '../cards/CardAvatar';
-import { withUserAuthentication } from '../../../hooks/UserAuthentification';
-import { UserContext } from '../../../context/userContext';
 import Admin from '../../assets/admin.avif';
+import { UserAuthentication } from '../../../hooks/UserAuthentification';
+import UserContext from '../../../context/userContext';
 
 const Sidebar = ({ activeMenu: initialActiveMenu }) => {
+
     const navigate = useNavigate();
-    const location = useLocation();
     const { user, clearUser } = useContext(UserContext);
     const [activeMenu, setActiveMenu] = useState(initialActiveMenu || 'Dashboard');
 
@@ -43,7 +43,7 @@ const Sidebar = ({ activeMenu: initialActiveMenu }) => {
     const userProfileImage = userData.profileImageUrl || Admin;
 
     return (
-        <>
+        <UserAuthentication>
             <div className={`sidebar-container`} style={{ background: 'var(--glass-bg)', color: 'var(--text-primary)' }}>
                 <div className="sidebar-content">
                     <div className="user-section">
@@ -92,11 +92,10 @@ const Sidebar = ({ activeMenu: initialActiveMenu }) => {
                     </nav>
                 </div>
 
-                {/* Effet de glassmorphism */}
                 <div className="sidebar-overlay" style={{ background: 'var(--glass-bg)' }}></div>
             </div>
-        </>
+        </UserAuthentication>
     );
 };
 
-export default withUserAuthentication(Sidebar);
+export default Sidebar;

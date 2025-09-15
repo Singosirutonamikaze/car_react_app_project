@@ -24,7 +24,7 @@ const DashboardPage = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = React.useCallback(async () => {
     if (loading) return;
 
     setLoading(true);
@@ -39,7 +39,7 @@ const DashboardPage = () => {
         console.log('Dashboard data:', response.data);
       }
     } catch (error) {
-      console.error('Erreur dashboard:', error);
+      console.log('Erreur dashboard:', error);
       if (error.response?.status === 401) {
         navigate('/login');
       } else {
@@ -48,7 +48,7 @@ const DashboardPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [loading, navigate]);
 
   useEffect(() => {
     fetchDashboardData();
