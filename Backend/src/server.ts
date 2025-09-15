@@ -33,7 +33,6 @@ const allowedOrigins = [
 server.use(
   cors({
     origin: function (origin, callback) {
-      // Permettre les requêtes sans origin (mobile apps, etc.)
       if (!origin) return callback(null, true);
 
       // Vérifier si l'origin est autorisé
@@ -62,7 +61,7 @@ server.use(
       'Origin'
     ],
     credentials: true,
-    optionsSuccessStatus: 200 // Pour supporter les anciens navigateurs
+    optionsSuccessStatus: 200 
   })
 );
 
