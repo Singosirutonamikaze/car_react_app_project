@@ -17,7 +17,7 @@ import VoituresPage from './app/presentation/pages/VoituresPage';
 import RecherchePage from './app/presentation/pages/RecherchePage';
 import ConnexionPage from './app/auth/pages/ConnexionPage';
 import InscriptionPage from './app/auth/pages/InscriptionPage';
-import CarDetailsPage from './app/client-dashboard/pages/CarDetailsPage';
+import CarDetailsPage from './app/presentation/pages/CarDetailsPage';
 import LoaderPage from './app/common/LoaderPage';
 import NotFoundPage from './app/common/NotFoundPage';
 
@@ -31,6 +31,7 @@ function App() {
         <Route path={ROUTES.LOGIN} element={<ConnexionPage />} />
         <Route path={ROUTES.SIGNUP} element={<InscriptionPage />} />
         <Route path={ROUTES.LOADER} element={<LoaderPage />} />
+         <Route path={ROUTES.CAR_DETAILS} element={<CarDetailsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       <>
@@ -42,7 +43,6 @@ function App() {
           <Route path={ROUTES.PROFILE} element={<ProfilPage />} />
           <Route path={ROUTES.PARAMETRES} element={<ParametresPage />} />
           <Route path={ROUTES.CARS} element={<VoituresPage />} />
-          <Route path={ROUTES.CAR_DETAILS} element={<CarDetailsPage />} />
           <Route path={ROUTES.SEARCH} element={<RecherchePage />} />
         </Routes>
       </>

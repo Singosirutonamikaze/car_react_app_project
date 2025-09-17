@@ -1,8 +1,10 @@
+import PresentationLayout from "../../../shared/components/layouts/PresentationLayout"
+
 function ContactPage() {
   return (
-    <div>
-      
-    </div>
+    <PresentationLayout activeItem="/contact">
+      <div></div>
+    </PresentationLayout>
   )
 }
 

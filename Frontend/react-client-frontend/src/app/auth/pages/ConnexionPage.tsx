@@ -1,8 +1,11 @@
+import AuthLayout from "../../../shared/components/layouts/AuthLayout"
+import ConnexionForm from "../components/form/ConnexionForm"
+
 function ConnexionPage() {
   return (
-    <div>
-      
-    </div>
+    <AuthLayout>
+      <ConnexionForm />
+    </AuthLayout>
   )
 }
 

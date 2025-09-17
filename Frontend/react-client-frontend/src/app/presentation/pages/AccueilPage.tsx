@@ -1,8 +1,13 @@
+import PresentationLayout from "../../../shared/components/layouts/PresentationLayout"
+import HeroSection from "../components/sections/HeroSection"
+
 function AccueilPage() {
   return (
-    <div>
-      
-    </div>
+    <PresentationLayout activeItem='/home'>
+     <div>
+       <HeroSection />
+     </div>
+    </PresentationLayout>
   )
 }
 

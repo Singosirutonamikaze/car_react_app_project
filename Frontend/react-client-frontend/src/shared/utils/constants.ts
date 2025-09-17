@@ -1,8 +1,8 @@
-export const API_BASE_URL ="https://car-app-backend-w29j.onrender.com";
+export const API_BASE_URL = "https://car-app-backend-w29j.onrender.com";
 
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,
-  TIMEOUT: 60000, 
+  TIMEOUT: 60000,
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000,
 };
@@ -10,6 +10,11 @@ export const API_CONFIG = {
 const API_PATHS = {
   DASHBOARD: {
     GET_DASHBOARD_DATA: `/api/version/dashboard`,
+  },
+  AUTH: {
+    LOGIN: `/api/version/auth/login`,
+    REGISTER: `/api/version/auth/register`,
+    GET_USER: `/api/version/auth/getUser`,
   },
   CLIENTS: {
     GET_ALL: `/api/version/clients/get`,

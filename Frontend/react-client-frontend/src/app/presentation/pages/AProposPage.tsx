@@ -1,8 +1,10 @@
+import PresentationLayout from "../../../shared/components/layouts/PresentationLayout"
+
 function AProposPage() {
   return (
-    <div>
-      
-    </div>
+    <PresentationLayout activeItem='/a-propos'>
+      <div></div>
+    </PresentationLayout>
   )
 }
 

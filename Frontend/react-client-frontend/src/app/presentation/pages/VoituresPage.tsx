@@ -1,8 +1,13 @@
+import PresentationLayout from "../../../shared/components/layouts/PresentationLayout"
+import VoituresListSection from "../components/sections/VoituresListSection"
+
 function VoituresPage() {
   return (
-    <div>
-      
-    </div>
+     <PresentationLayout activeItem="/voitures">
+      <div className="">
+        <VoituresListSection />
+      </div>
+    </PresentationLayout>
   )
 }
 

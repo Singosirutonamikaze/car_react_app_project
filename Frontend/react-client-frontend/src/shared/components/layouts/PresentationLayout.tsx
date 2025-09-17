@@ -1,15 +1,19 @@
-import type { ReactNode } from "react"
-import NavBarPresentation from "../ui/navbars/NavBarPresentation"
+import type { ReactNode } from "react";
+import NavBarPresentation from "../ui/navbars/NavBarPresentation";
 
-function PresentationLayout({children}: { children: ReactNode }) {
+interface PresentationLayoutProps {
+  activeItem?: string;
+  children: ReactNode;
+}
+
+function PresentationLayout({ children, activeItem }: PresentationLayoutProps) {
   return (
-    <div className="">
-        <div className="">
-          <NavBarPresentation />
-        </div>
-        <div className="">
-          {children}
-        </div>
+    <div className="w-full min-h-screen bg-gradient-to-b from-blue-900 via-blue-950 to-black overflow-auto">
+      <NavBarPresentation activeItem={activeItem} />
+
+      <div className="mt-15 w-full px-4 h-auto overflow-x-hidden">
+        {children}
+      </div>
     </div>
   )
 }
