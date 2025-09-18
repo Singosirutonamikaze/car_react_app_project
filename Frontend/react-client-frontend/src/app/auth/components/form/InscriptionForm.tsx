@@ -1,11 +1,9 @@
-// src/app/auth/components/form/InscriptionForm.tsx
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import { authService } from "../../../../shared/services/authService";
 import Input from "../inputs/Input";
+import useAuth from "../../../../shared/hooks/useAuth";
 import ROUTES from "../../../../router";
-
 
 function InscriptionForm() {
   const [formData, setFormData] = useState({
@@ -18,6 +16,7 @@ function InscriptionForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -68,24 +67,23 @@ function InscriptionForm() {
 
     setIsLoading(true);
     try {
-      const response = await authService.register({
+      await register({
         name: formData.name,
         surname: formData.surname,
         email: formData.email,
         password: formData.password,
       });
-
-      if (response.token) {
-        toast.success("Inscription réussie !");
-        navigate(ROUTES.DASHBOARD);
-      }
-    } catch (error) {
+      toast.success("Inscription réussie !");
+      navigate(ROUTES.DASHBOARD);
+    } catch (error: unknown) {
       console.error("Erreur d'inscription:", error);
-      const errorMessage =
-        typeof error === "object" && error !== null && "message" in error
-          ? (error as { message?: string }).message
-          : undefined;
-      toast.error(errorMessage || "Erreur lors de l'inscription");
+      if (error instanceof Error) {
+        toast.error(error.message || "Erreur lors de l'inscription");
+      } else {
+        toast.error("Erreur lors de l'inscription");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 

@@ -1,9 +1,9 @@
-// src/app/auth/components/form/ConnexionForm.tsx
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import { authService } from "../../../../shared/services/authService";
 import Input from "../inputs/Input";
+import useAuth from "../../../../shared/hooks/useAuth";
+import ROUTES from "../../../../router";
 
 function ConnexionForm() {
   const [formData, setFormData] = useState({
@@ -13,6 +13,7 @@ function ConnexionForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -45,16 +46,15 @@ function ConnexionForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    if (!validateForm()){
+       return;
+    }
 
     setIsLoading(true);
     try {
-      const response = await authService.login(formData);
-
-      if (response.token) {
-        toast.success("Connexion réussie !");
-        navigate("/dashboard");
-      }
+      await login(formData.email, formData.password);
+      toast.success("Connexion réussie !");
+      navigate(ROUTES.DASHBOARD);
     } catch (error: unknown) {
       console.error("Erreur de connexion:", error);
       if (error instanceof Error) {
@@ -62,6 +62,8 @@ function ConnexionForm() {
       } else {
         toast.error("Erreur lors de la connexion");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -118,7 +120,7 @@ function ConnexionForm() {
           <p className="text-blue-200">
             Pas encore de compte?{" "}
             <Link
-              to="/inscription"
+              to={ROUTES.SIGNUP}
               className="text-white font-semibold hover:text-blue-100 transition-colors"
             >
               S'inscrire

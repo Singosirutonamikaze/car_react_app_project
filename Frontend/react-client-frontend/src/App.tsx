@@ -1,5 +1,6 @@
 import ROUTES from './router';
 import './index.css';
+import './styles/globals.css';
 import { Route, Routes } from 'react-router';
 import { ToastContainer } from 'react-toastify';
 
@@ -20,6 +21,7 @@ import InscriptionPage from './app/auth/pages/InscriptionPage';
 import CarDetailsPage from './app/presentation/pages/CarDetailsPage';
 import LoaderPage from './app/common/LoaderPage';
 import NotFoundPage from './app/common/NotFoundPage';
+import { AuthProvider } from './shared/contexts/UserProvider';
 
 function App() {
   return (
@@ -28,13 +30,10 @@ function App() {
         <Route path={ROUTES.HOME} element={<AccueilPage />} />
         <Route path={ROUTES.ABOUT} element={<AProposPage />} />
         <Route path={ROUTES.CONTACT} element={<ContactPage />} />
-        <Route path={ROUTES.LOGIN} element={<ConnexionPage />} />
-        <Route path={ROUTES.SIGNUP} element={<InscriptionPage />} />
         <Route path={ROUTES.LOADER} element={<LoaderPage />} />
-         <Route path={ROUTES.CAR_DETAILS} element={<CarDetailsPage />} />
-        <Route path="*" element={<NotFoundPage />} />
+        <Route path={ROUTES.CAR_DETAILS} element={<CarDetailsPage />} />
       </Routes>
-      <>
+      <AuthProvider>
         <Routes>
           <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
           <Route path={ROUTES.FAVORITES} element={<FavorisPage />} />
@@ -44,8 +43,11 @@ function App() {
           <Route path={ROUTES.PARAMETRES} element={<ParametresPage />} />
           <Route path={ROUTES.CARS} element={<VoituresPage />} />
           <Route path={ROUTES.SEARCH} element={<RecherchePage />} />
+          <Route path={ROUTES.LOGIN} element={<ConnexionPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+          <Route path={ROUTES.SIGNUP} element={<InscriptionPage />} />
         </Routes>
-      </>
+      </AuthProvider>
       <ToastContainer
         position="top-right"
         autoClose={5000}

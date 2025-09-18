@@ -1,40 +1,45 @@
-import type { AuthResponse, LoginData, RegisterData } from "../types/auth";
-import { API_CONFIG, API_PATHS } from "../utils/constants";
+import { API_CONFIG, API_PATHS } from '../utils/constants';
+import type { Client } from '../types/client';
 
-export const authService = {
-    async login(data: LoginData): Promise<AuthResponse> {
+export interface LoginResponse {
+    token: string;
+    user: Client;
+}
+
+const authService = {
+    async login(email: string, password: string): Promise<LoginResponse> {
         const response = await fetch(`${API_CONFIG.BASE_URL}${API_PATHS.AUTH.LOGIN}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify({ email, password }),
         });
 
-        const result = await response.json();
-
         if (!response.ok) {
-            throw new Error(result.message || 'Échec de la connexion');
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Échec de la connexion');
         }
 
-        return result;
+        return response.json();
     },
 
-    async register(data: RegisterData): Promise<AuthResponse> {
+    async register(userData: Omit<Client, 'id'>): Promise<LoginResponse> {
         const response = await fetch(`${API_CONFIG.BASE_URL}${API_PATHS.AUTH.REGISTER}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify(userData),
         });
 
-        const result = await response.json();
-
         if (!response.ok) {
-            throw new Error(result.message || "Échec de l'inscription");
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Échec de l\'inscription');
         }
 
-        return result;
+        return response.json();
     },
 };
+
+export default authService;
