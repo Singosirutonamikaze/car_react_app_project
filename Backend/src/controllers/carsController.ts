@@ -1,9 +1,6 @@
 import { Request, Response } from 'express';
 import CarModel from '../models/Car';
 import PDFDocument from "pdfkit";
-import axios from "axios";
-import Handlebars from 'handlebars';
-import mongoose from 'mongoose';
 
 export const getAllCars = async (req: Request, res: Response): Promise<void> => {
   try {

@@ -13,6 +13,9 @@ import carRoutes from './routes/cars.routes';
 import orderRoutes from './routes/commands.routes';
 import ventesRoutes from './routes/ventes.routes';
 import dashboardRoutes from './routes/dashboard.routes';
+import favoritesRoutes from './routes/favorites.routes';
+import clientRoutes from './routes/user.routes';
+import accountsRoutes from './routes/achat.routes';
 
 dotenv.config();
 
@@ -26,6 +29,7 @@ const allowedOrigins = [
   'http://50.50.67.135:3000',
   'http://localhost:5173',
   'https://car-react-app-project.vercel.app',
+  'https://react-client-frontend-car.vercel.app',
   /^https:\/\/.*\.vercel\.app$/,
   process.env.FRONTEND_URL
 ];
@@ -124,6 +128,9 @@ server.use('/api/version/auth', authRoutes);
 server.use('/api/version/clients', clientsRoutes);
 server.use('/api/version/admin', adminRoutes);
 server.use('/api/version/dashboard', dashboardRoutes);
+server.use('/api/version/favorites', favoritesRoutes);
+server.use('/api/version/client', clientRoutes);
+server.use('/api/version/achat', accountsRoutes);
 
 // Route de santé pour vérifier le serveur
 server.get('/health', (req, res) => {

@@ -26,7 +26,19 @@ const ClientSchema = new mongoose.Schema(
       type: String,
       default: null
     },
-  }, 
+    commandes: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Commande'
+    }],
+    favorites: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Favorite'
+    }],
+    achats: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Achat'
+    }],
+  },
   { timestamps: true }
 );
 
