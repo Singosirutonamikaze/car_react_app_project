@@ -8,7 +8,7 @@ Merci de votre intérêt pour contribuer à CarHub. Ce document fournit les dire
 
 1. [Code de Conduite](#code-de-conduite)
 2. [Comment Contribuer](#comment-contribuer)
-3. [Signaler un Bug](#signaler-un-bug)
+3. [Signaler un Bug]
 4. [Proposer une Fonctionnalité](#proposer-une-fonctionnalité)
 5. [Processus de Pull Request](#processus-de-pull-request)
 6. [Conventions de Code](#conventions-de-code)
@@ -32,10 +32,6 @@ En participant à ce projet, vous acceptez de respecter notre code de conduite q
 - Correction de fautes de frappe
 - Amélioration de l'accessibilité
 - Amélioration de l'interface utilisateur
-
-## Signaler un Bug
-
-Avant de signaler un bug, veuillez vérifier qu'il n'a pas déjà été signalé dans les [Issues](https://github.com/votre-repo/carhub/issues).
 
 ### Informations à Fournir
 
@@ -84,12 +80,12 @@ une erreur 500 est retournée et le véhicule n'est pas ajouté.
 4. Observer l'erreur dans la console
 
 Environnement :
-- OS : Windows 11
-- Navigateur : Chrome 120.0
+- OS : Windows 11 | linux | Debian
+- Navigateur : Chrome | Opera | Edge
 - Node.js : v18.17.0
-- Version du projet : 1.2.0
 
 Erreur console :
+
 ```
 POST /api/cart/add 500 (Internal Server Error)
 TypeError: Cannot read property 'id' of undefined
@@ -156,12 +152,14 @@ Impact :
 ### Avant de Soumettre
 
 1. **Fork du projet**
+
    ```bash
-   git clone https://github.com/votre-username/carhub.git
+   git clone https://github.com/Singosirutonamikaze/car_react_app_project.git
    cd carhub
    ```
 
 2. **Créer une branche**
+
    ```bash
    git checkout -b feature/ma-fonctionnalite
    # ou
@@ -169,14 +167,15 @@ Impact :
    ```
 
 3. **Installer les dépendances**
+
    ```bash
    # Pour le client
    cd Frontend/react-client-frontend
-   npm install
+   npm install | yarn install
    
    # Pour l'admin
    cd Frontend/react-app-admin-car
-   npm install
+   npm install | yarn install
    ```
 
 ### Pendant le Développement
@@ -184,6 +183,7 @@ Impact :
 1. **Respecter les conventions de code** (voir section suivante)
 
 2. **Tester les modifications**
+
    ```bash
    npm run dev    # Vérifier en mode développement
    npm run build  # Vérifier que le build fonctionne
@@ -195,6 +195,7 @@ Impact :
    - Mettre à jour la documentation si nécessaire
 
 4. **Commits réguliers**
+
    ```bash
    git add .
    git commit -m "type: description"
@@ -299,9 +300,10 @@ export const UserProfile = ({ userId, onUpdate }: UserProfileProps) => {
 }
 ```
 
-### Frontend Admin (JavaScript)
+### Frontend Admin (React jsx)
 
 #### Structure similaire
+
 ```javascript
 import { useState, useEffect } from 'react'
 
@@ -337,18 +339,12 @@ export const UserProfile = ({ userId, onUpdate }) => {
 - Quotes : Simple quotes pour JSX, double quotes pour autres
 - Longueur de ligne : Maximum 100 caractères
 
-### ESLint
-
-Respecter les règles ESLint configurées dans le projet :
-```bash
-npm run lint
-```
-
 ## Structure des Commits
 
 Utiliser la convention [Conventional Commits](https://www.conventionalcommits.org/) :
 
 ### Format
+
 ```
 <type>(<scope>): <description>
 
@@ -413,37 +409,3 @@ refactor(client): amélioration de la structure du composant CarCard
   - Tailwind CSS IntelliSense
   - TypeScript and JavaScript Language Features
   - GitLens
-
-### Configuration VS Code
-
-Créer `.vscode/settings.json` :
-
-```json
-{
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
-  },
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true
-}
-```
-
-### Git Hooks
-
-Le projet utilise Husky pour les hooks Git :
-
-- `pre-commit` : Lint et format du code
-- `commit-msg` : Vérification du format des messages
-
-## Questions et Support
-
-- Consultez la documentation dans le dossier `/docs`
-- Recherchez dans les [Issues](https://github.com/votre-repo/carhub/issues)
-- Ouvrez une nouvelle issue si nécessaire
-- Rejoignez nos discussions sur [GitHub Discussions](https://github.com/votre-repo/carhub/discussions)
-
-## Remerciements
-
-Merci à tous les contributeurs qui ont participé à ce projet. Vos contributions sont précieuses et appréciées.
