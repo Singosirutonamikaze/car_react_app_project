@@ -20,7 +20,7 @@ import ConnexionPage from './app/auth/pages/ConnexionPage';
 import InscriptionPage from './app/auth/pages/InscriptionPage';
 import CarDetailsPage from './app/presentation/pages/CarDetailsPage';
 import LoaderPage from './app/common/LoaderPage';
-import NotFoundPage from './app/common/NotFoundPage';
+//import NotFoundPage from './app/common/NotFoundPage';
 import { AuthProvider } from './shared/contexts/UserProvider';
 
 function App() {
@@ -44,7 +44,7 @@ function App() {
           <Route path={ROUTES.CARS} element={<VoituresPage />} />
           <Route path={ROUTES.SEARCH} element={<RecherchePage />} />
           <Route path={ROUTES.LOGIN} element={<ConnexionPage />} />
-          <Route path="*" element={<NotFoundPage />} />
+          {/* <Route path="*" element={<NotFoundPage />} /> */}
           <Route path={ROUTES.SIGNUP} element={<InscriptionPage />} />
         </Routes>
       </AuthProvider>
