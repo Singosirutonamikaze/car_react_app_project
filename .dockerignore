@@ -1,0 +1,24 @@
+# Exclure les dossiers inutiles au build du backend
+frontend/
+docs/
+Docs/
+Frontend/
+
+# Dépendances et artefacts compilés
+backend/node_modules
+backend/dist
+backend/uploads
+
+# Fichiers sensibles
+backend/.env
+backend/.env.*
+*.log
+npm-debug.log*
+
+# Git
+.git
+.gitignore
+
+# Docs
+README.md
+*.md
