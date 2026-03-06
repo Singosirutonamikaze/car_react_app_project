@@ -29,8 +29,7 @@
     "micromatch": "^4.0.8",
     "tough-cookie": "^4.1.4",
     "lodash": "^4.17.21",
-    "minimatch": "^9.0.5",
-    "@apidevtools/json-schema-ref-parser": "^11.9.3"
+    "minimatch": "^9.0.5"
   },
   "dependencies": {
     "@types/express": "^5.0.3",
