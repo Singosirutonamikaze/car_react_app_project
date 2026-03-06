@@ -10,6 +10,8 @@ RUN npm ci --ignore-scripts
 COPY backend/ .
 RUN npm run build && npm prune --omit=dev
 
+RUN mkdir -p /app/uploads && chown -R node:node /app
+
 ENV NODE_ENV=production
 
 USER node
