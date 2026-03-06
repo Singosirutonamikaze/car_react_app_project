@@ -9,6 +9,8 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const node_path_1 = __importDefault(require("node:path"));
 const node_fs_1 = __importDefault(require("node:fs"));
 const cors_1 = __importDefault(require("cors"));
+const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
+const swagger_1 = __importDefault(require("./config/swagger"));
 const db_1 = __importDefault(require("./config/db"));
 const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
 const clients_routes_1 = __importDefault(require("./routes/clients.routes"));
@@ -104,6 +106,27 @@ if (!node_fs_1.default.existsSync(uploadsPath)) {
 server.use('/uploads', express_1.default.static(uploadsPath));
 // Connexion DB
 (0, db_1.default)();
+// ─── Documentation API (Swagger) ──────────────────────────────────────────────
+const swaggerUiOptions = {
+    customSiteTitle: 'Next Car Dev — API Docs',
+    customCss: `
+    .swagger-ui .topbar { background-color: #1a1a2e; }
+    .swagger-ui .topbar .download-url-wrapper { display: none; }
+    .swagger-ui .info .title { color: #e94560; }
+  `,
+    swaggerOptions: {
+        persistAuthorization: true,
+        displayRequestDuration: true,
+        docExpansion: 'none',
+        filter: true,
+    },
+};
+server.use('/api/docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_1.default, swaggerUiOptions));
+// Endpoint pour récupérer le JSON brut de la spec (utile pour Postman, Insomnia…)
+server.get('/api/docs.json', (_req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swagger_1.default);
+});
 // Routes protégées avec permissions spécifiques
 server.use('/api/admin/cars', cars_routes_1.default);
 server.use('/api/admin/orders', commands_routes_1.default);
@@ -121,11 +144,11 @@ server.use('/api/version/locations', location_routes_1.default);
 server.get('/health', (req, res) => {
     res.status(200).json({
         status: 'OK',
-        message: 'Serveur en fonctionnement',
+        message: '------------ Serveur en fonctionnement-------------\n',
         timestamp: new Date().toISOString()
     });
 });
-server.get('/', (_req, res) => res.send('Hello World'));
+server.get('/', (_req, res) => res.send('----------------- Hello World ----------------------\n'));
 server.use(errorMiddleware_1.notFound);
 server.use(errorMiddleware_1.errorHandler);
 exports.default = server;

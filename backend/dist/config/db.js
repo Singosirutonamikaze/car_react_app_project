@@ -50,7 +50,8 @@ const connectDB = async () => {
             autoIndex: false,
             serverSelectionTimeoutMS: 5000,
         });
-        console.log("MongoDB connecté avec succès");
+        console.log("--------------- MongoDB connecté avec succès ------------\n");
+        console.log("-----------------Travailler maintenant avec tranquilité----------\n");
     }
     catch (error) {
         if (error instanceof mongoose_1.default.Error) {

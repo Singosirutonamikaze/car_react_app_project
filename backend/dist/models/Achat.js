@@ -68,5 +68,4 @@ achatSchema.index({ voiture: 1 });
 achatSchema.index({ commande: 1 });
 achatSchema.index({ statut: 1 });
 achatSchema.index({ dateAchat: -1 });
-achatSchema.index({ numeroTransaction: 1 });
 exports.AchatModel = (0, mongoose_1.model)('Achat', achatSchema);

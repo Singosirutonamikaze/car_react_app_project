@@ -68,6 +68,5 @@ achatSchema.index({ voiture: 1 });
 achatSchema.index({ commande: 1 });
 achatSchema.index({ statut: 1 });
 achatSchema.index({ dateAchat: -1 });
-achatSchema.index({ numeroTransaction: 1 });
 
 export const AchatModel = model<IAchatDocument>('Achat', achatSchema);

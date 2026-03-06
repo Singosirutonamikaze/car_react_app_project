@@ -21,7 +21,7 @@ const createDefaultAdmin = async () => {
       console.log('Admin par défaut créé avec succès');
       console.log('Email:', defaultEmail);
     } else {
-      console.log('Admin(s) déjà existant(s) dans la base de données');
+      console.log('---------------- Admin(s) déjà existant(s) dans la base de données-------------\n');
     }
   } catch (error) {
     console.error('Erreur lors de la création de l\'admin par défaut:', error);

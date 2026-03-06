@@ -169,12 +169,12 @@ server.use('/api/version/locations', locationRoutes);
 server.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
-    message: 'Serveur en fonctionnement',
+    message: '------------ Serveur en fonctionnement-------------\n',
     timestamp: new Date().toISOString()
   });
 });
 
-server.get('/', (_req, res) => res.send('Hello World'));
+server.get('/', (_req, res) => res.send('----------------- Hello World ----------------------\n'));
 server.use(notFound);
 server.use(errorHandler);
 
