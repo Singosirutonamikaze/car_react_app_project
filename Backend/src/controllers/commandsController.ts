@@ -1,23 +1,40 @@
 import { Request, Response } from 'express';
+import { Types } from 'mongoose';
 import CommandeModel from '../models/Commande';
+import { IAdresseLivraison } from '../interfaces/ICommande';
+
+interface PopulatedClient {
+    _id: Types.ObjectId;
+    name: string;
+    surname: string;
+    email: string;
+}
+
+interface PopulatedVoiture {
+    _id: Types.ObjectId;
+    marque: string;
+    model: string;
+    year: number;
+    price: number;
+}
 
 // Interface pour les documents populés
 interface PopulatedCommande {
-  _id: any;
-  client: any;
-  voiture: any;
-  statut: string;
-  montant: number;
-  fraisLivraison: number;
-  montantTotal: number;
-  modePaiement: string;
-  adresseLivraison: any;
-  dateCommande: Date;
-  dateLivraisonPrevue?: Date;
-  dateLivraisonReelle?: Date;
-  notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
+    _id: Types.ObjectId;
+    client: PopulatedClient;
+    voiture: PopulatedVoiture;
+    statut: string;
+    montant: number;
+    fraisLivraison: number;
+    montantTotal: number;
+    modePaiement: string;
+    adresseLivraison: IAdresseLivraison;
+    dateCommande: Date;
+    dateLivraisonPrevue?: Date;
+    dateLivraisonReelle?: Date;
+    notes?: string;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export const getAllCommande = async (req: Request, res: Response): Promise<void> => {
@@ -25,7 +42,7 @@ export const getAllCommande = async (req: Request, res: Response): Promise<void>
         const commandes = await CommandeModel.find()
             .populate('client', 'name surname email')
             .populate('voiture', 'marque model year price') as unknown as PopulatedCommande[];
-        
+
         res.status(200).json({
             success: true,
             data: commandes,
@@ -119,7 +136,7 @@ export const updateCommande = async (req: Request, res: Response): Promise<void>
             updates,
             { new: true, runValidators: true }
         ).populate('client', 'name surname email')
-         .populate('voiture', 'marque model year price');
+            .populate('voiture', 'marque model year price');
 
         if (!commande) {
             res.status(404).json({
@@ -189,21 +206,21 @@ export const downloadsCommande = async (req: Request, res: Response): Promise<vo
             let clientName = '';
             let clientEmail = '';
             if (commande.client && typeof commande.client === 'object' && 'name' in commande.client && 'surname' in commande.client && 'email' in commande.client) {
-                clientName = `${(commande.client as any).name} ${(commande.client as any).surname}`;
-                clientEmail = (commande.client as any).email;
+                const c = commande.client as { name: string; surname: string; email: string };
+                clientName = `${c.name} ${c.surname}`;
+                clientEmail = c.email;
             } else {
                 clientName = commande.client?.toString() || '';
-                clientEmail = '';
             }
 
             let voitureInfo = '';
-            let voiturePrice = '';
+            let voiturePrice: string | number = '';
             if (commande.voiture && typeof commande.voiture === 'object' && 'marque' in commande.voiture && 'model' in commande.voiture && 'year' in commande.voiture && 'price' in commande.voiture) {
-                voitureInfo = `${(commande.voiture as any).marque} ${(commande.voiture as any).model} (${(commande.voiture as any).year})`;
-                voiturePrice = (commande.voiture as any).price;
+                const v = commande.voiture as { marque: string; model: string; year: number; price: number };
+                voitureInfo = `${v.marque} ${v.model} (${v.year})`;
+                voiturePrice = v.price;
             } else {
                 voitureInfo = commande.voiture?.toString() || '';
-                voiturePrice = '';
             }
 
             return {
@@ -227,7 +244,7 @@ export const downloadsCommande = async (req: Request, res: Response): Promise<vo
         res.setHeader('Content-Disposition', 'attachment; filename=commandes.csv');
 
         let csv = 'Numéro Commande,Client,Email Client,Voiture,Prix Voiture,Statut,Montant,Frais Livraison,Montant Total,Mode Paiement,Date Commande,Date Livraison Prévue,Ville Livraison\n';
-        
+
         dataForExport.forEach(row => {
             csv += `"${Object.values(row).join('","')}"\n`;
         });

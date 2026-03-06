@@ -7,11 +7,10 @@ const express_1 = __importDefault(require("express"));
 const commandsController_1 = require("../controllers/commandsController");
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const express_validator_1 = require("express-validator");
-const express_validator_2 = require("express-validator");
 const router = express_1.default.Router();
 // Middleware de validation
 const handleValidationErrors = (req, res, next) => {
-    const errors = (0, express_validator_2.validationResult)(req);
+    const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({
             success: false,

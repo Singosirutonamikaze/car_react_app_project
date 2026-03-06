@@ -5,15 +5,15 @@ import CommandeModel from "../models/Commande";
 import { Types } from "mongoose";
 
 interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-  };
+    user?: {
+        id: string;
+    };
 }
 export const getUserAchats = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const userId = req.user?.id;
-        const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 10;
+        const page = Number.parseInt(req.query.page as string) || 1;
+        const limit = Number.parseInt(req.query.limit as string) || 10;
         const statut = req.query.statut as string;
         const skip = (page - 1) * limit;
 
@@ -143,7 +143,7 @@ export const createAchat = async (req: AuthenticatedRequest, res: Response): Pro
         const user = await UserModel.findById(userId);
         if (user) {
             user.achats = user.achats || [];
-            user.achats.push(savedAchat._id);
+            user.achats.push(savedAchat._id as Types.ObjectId);
             await user.save();
         }
 

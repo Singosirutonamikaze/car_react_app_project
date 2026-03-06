@@ -1,12 +1,14 @@
 import { Request, Response } from 'express';
+import { FilterQuery } from 'mongoose';
 import CarModel from '../models/Car';
+import { ICar } from '../interfaces/ICar';
 import PDFDocument from "pdfkit";
 
 export const getAllCars = async (req: Request, res: Response): Promise<void> => {
   try {
     const { disponible, marque, ville, minPrice, maxPrice } = req.query;
 
-    let filter: any = {};
+    let filter: FilterQuery<ICar> = {};
 
     if (disponible !== undefined) filter.disponible = disponible === 'true';
     if (marque) filter.marque = new RegExp(marque as string, 'i');
@@ -72,11 +74,12 @@ export const createCar = async (req: Request, res: Response): Promise<void> => {
       message: 'Voiture créée avec succès',
       data: newCar
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erreur lors de la création de la voiture:', error);
 
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map((err: any) => ({
+    if (error instanceof Error && error.name === 'ValidationError') {
+      const validationError = error as Error & { errors: Record<string, { path: string; message: string }> };
+      const errors = Object.values(validationError.errors).map(err => ({
         field: err.path,
         message: err.message
       }));
@@ -120,11 +123,12 @@ export const updateCar = async (req: Request, res: Response): Promise<void> => {
       message: 'Voiture mise à jour avec succès',
       data: car
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erreur lors de la mise à jour de la voiture:', error);
 
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map((err: any) => ({
+    if (error instanceof Error && error.name === 'ValidationError') {
+      const validationError = error as Error & { errors: Record<string, { path: string; message: string }> };
+      const errors = Object.values(validationError.errors).map(err => ({
         field: err.path,
         message: err.message
       }));

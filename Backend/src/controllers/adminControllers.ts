@@ -2,13 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import AdminModel from '../models/Admin';
-
-export interface AuthenticatedRequest extends Request {
-  admin: {
-    id: string;
-    email?: string;
-  };
-}
+import { AuthenticatedRequest } from '../middleware/adminMiddleware';
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -26,7 +20,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     const admin = await AdminModel.findOne({ email });
     console.log('Admin trouvé:', admin ? admin.email : 'Aucun');
-    
+
     if (!admin) {
       res.status(401).json({
         success: false,
@@ -45,7 +39,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     console.log('Mot de passe fourni:', password);
     console.log('Mot de passe stocké (haché):', admin.password);
-    
+
     console.log('Comparaison des mots de passe...');
     const isPasswordValid = await bcrypt.compare(password, admin.password);
     console.log('Résultat de la comparaison:', isPasswordValid);
@@ -61,7 +55,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Générer le token JWT
     const token = jwt.sign(
       { id: admin._id, email: admin.email },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || '',
       { expiresIn: '24h' }
     );
 
@@ -88,6 +82,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
 export const getProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
+    if (!req.admin) {
+      res.status(401).json({ success: false, message: 'Non autorisé' });
+      return;
+    }
     const admin = await AdminModel.findById(req.admin.id).select('-password');
 
     if (!admin) {
@@ -114,6 +112,11 @@ export const getProfile = async (req: AuthenticatedRequest, res: Response): Prom
 export const changePassword = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { currentPassword, newPassword } = req.body;
+
+    if (!req.admin) {
+      res.status(401).json({ success: false, message: 'Non autorisé' });
+      return;
+    }
 
     if (!currentPassword || !newPassword) {
       res.status(400).json({

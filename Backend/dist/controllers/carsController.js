@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -16,7 +7,7 @@ exports.toggleCarAvailability = exports.deleteCar = exports.updateCar = exports.
 exports.downloadCars = downloadCars;
 const Car_1 = __importDefault(require("../models/Car"));
 const pdfkit_1 = __importDefault(require("pdfkit"));
-const getAllCars = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllCars = async (req, res) => {
     try {
         const { disponible, marque, ville, minPrice, maxPrice } = req.query;
         let filter = {};
@@ -33,7 +24,7 @@ const getAllCars = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             if (maxPrice)
                 filter.price.$lte = Number(maxPrice);
         }
-        const cars = yield Car_1.default.find(filter);
+        const cars = await Car_1.default.find(filter);
         res.status(200).json({
             success: true,
             data: cars,
@@ -47,12 +38,12 @@ const getAllCars = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             message: 'Erreur interne du serveur'
         });
     }
-});
+};
 exports.getAllCars = getAllCars;
-const getCarById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getCarById = async (req, res) => {
     try {
         const { id } = req.params;
-        const car = yield Car_1.default.findById(id);
+        const car = await Car_1.default.findById(id);
         if (!car) {
             res.status(404).json({
                 success: false,
@@ -72,13 +63,13 @@ const getCarById = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             message: 'Erreur interne du serveur'
         });
     }
-});
+};
 exports.getCarById = getCarById;
-const createCar = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createCar = async (req, res) => {
     try {
         const carData = req.body;
         const newCar = new Car_1.default(carData);
-        yield newCar.save();
+        await newCar.save();
         res.status(201).json({
             success: true,
             message: 'Voiture créée avec succès',
@@ -87,8 +78,9 @@ const createCar = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         console.error('Erreur lors de la création de la voiture:', error);
-        if (error.name === 'ValidationError') {
-            const errors = Object.values(error.errors).map((err) => ({
+        if (error instanceof Error && error.name === 'ValidationError') {
+            const validationError = error;
+            const errors = Object.values(validationError.errors).map(err => ({
                 field: err.path,
                 message: err.message
             }));
@@ -104,13 +96,13 @@ const createCar = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             message: 'Erreur interne du serveur'
         });
     }
-});
+};
 exports.createCar = createCar;
-const updateCar = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateCar = async (req, res) => {
     try {
         const { id } = req.params;
         const updates = req.body;
-        const car = yield Car_1.default.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
+        const car = await Car_1.default.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
         if (!car) {
             res.status(404).json({
                 success: false,
@@ -126,8 +118,9 @@ const updateCar = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         console.error('Erreur lors de la mise à jour de la voiture:', error);
-        if (error.name === 'ValidationError') {
-            const errors = Object.values(error.errors).map((err) => ({
+        if (error instanceof Error && error.name === 'ValidationError') {
+            const validationError = error;
+            const errors = Object.values(validationError.errors).map(err => ({
                 field: err.path,
                 message: err.message
             }));
@@ -143,12 +136,12 @@ const updateCar = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             message: 'Erreur interne du serveur'
         });
     }
-});
+};
 exports.updateCar = updateCar;
-const deleteCar = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteCar = async (req, res) => {
     try {
         const { id } = req.params;
-        const car = yield Car_1.default.findByIdAndDelete(id);
+        const car = await Car_1.default.findByIdAndDelete(id);
         if (!car) {
             res.status(404).json({
                 success: false,
@@ -168,12 +161,12 @@ const deleteCar = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             message: 'Erreur interne du serveur'
         });
     }
-});
+};
 exports.deleteCar = deleteCar;
-const toggleCarAvailability = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const toggleCarAvailability = async (req, res) => {
     try {
         const { id } = req.params;
-        const car = yield Car_1.default.findById(id);
+        const car = await Car_1.default.findById(id);
         if (!car) {
             res.status(404).json({
                 success: false,
@@ -182,7 +175,7 @@ const toggleCarAvailability = (req, res) => __awaiter(void 0, void 0, void 0, fu
             return;
         }
         car.disponible = !car.disponible;
-        yield car.save();
+        await car.save();
         res.status(200).json({
             success: true,
             message: `Voiture ${car.disponible ? 'disponible' : 'indisponible'}`,
@@ -196,7 +189,7 @@ const toggleCarAvailability = (req, res) => __awaiter(void 0, void 0, void 0, fu
             message: 'Erreur interne du serveur'
         });
     }
-});
+};
 exports.toggleCarAvailability = toggleCarAvailability;
 function downloadCars(req, res) {
     const doc = new pdfkit_1.default();

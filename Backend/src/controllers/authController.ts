@@ -2,19 +2,40 @@
 import { Request, Response } from 'express';
 import UserModel from '../models/Client';
 import generateToken from '../utils/generateToken';
-import type { Multer } from 'multer';
 import { Types } from 'mongoose';
-export interface IUserDocument extends Document {
-    _id: string;
+
+interface PopulatedVoiture {
+    marque: string;
+    modele?: string;
+    annee?: number;
+    prix?: number;
+    images?: string[];
+    disponible?: boolean;
+}
+
+interface PopulatedCommande {
+    statut: string;
+    montantTotal?: number;
+    voiture?: PopulatedVoiture;
+    dateCommande: Date;
+}
+
+interface PopulatedFavorite {
+    voiture?: PopulatedVoiture;
+    dateAjout?: Date;
+}
+
+export interface IUserDocument {
+    _id: Types.ObjectId | string;
     name: string;
     surname: string;
     email: string;
     password: string;
     profileImageUrl?: string | null;
     comparePassword(candidatePassword: string): Promise<boolean>;
-    toObject(): any;
+    toObject(): Record<string, unknown>;
 }
-type ReqWithFile = Request & { file?: Multer.File };
+type ReqWithFile = Request & { file?: Express.Multer.File };
 type AuthenticatedRequest = Request & { user?: { id: string } };
 
 export const registerUser = async (req: ReqWithFile, res: Response): Promise<void> => {
@@ -24,7 +45,7 @@ export const registerUser = async (req: ReqWithFile, res: Response): Promise<voi
             res.status(400).json({ message: "S'il vous plaît, remplissez tous les champs." });
             return;
         }
-        const existingUser = await UserModel.findOne({ email }) as IUserDocument | null;
+        const existingUser = await UserModel.findOne({ email });
         if (existingUser) {
             res.status(400).json({ message: 'Cet utilisateur existe déjà.' });
             return;
@@ -39,11 +60,12 @@ export const registerUser = async (req: ReqWithFile, res: Response): Promise<voi
         });
         await newUser.save();
         const token = generateToken(newUser._id.toString());
-        const userToReturn = newUser.toObject();
-        delete (userToReturn as any).password;
+        const userToReturn = newUser.toObject() as Record<string, unknown>;
+        delete userToReturn['password'];
         res.status(201).json({ token, user: userToReturn });
-    } catch (error: any) {
-        if (error?.code === 11000 && error.keyPattern?.email) {
+    } catch (error: unknown) {
+        const mongoErr = error as { code?: number; keyPattern?: Record<string, unknown> };
+        if (mongoErr?.code === 11000 && mongoErr.keyPattern?.email) {
             res.status(400).json({ message: "L'email est déjà utilisé." });
             return;
         }
@@ -59,7 +81,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             res.status(400).json({ message: "S'il vous plaît, remplissez tous les champs." });
             return;
         }
-        const user = await UserModel.findOne({ email }) as IUserDocument | null;
+        const user: IUserDocument | null = await UserModel.findOne({ email });
         if (!user) {
             res.status(400).json({ message: 'Utilisateur non trouvé.' });
             return;
@@ -70,8 +92,8 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             return;
         }
         const token = generateToken(user._id.toString());
-        const userToReturn = user.toObject();
-        delete (userToReturn as any).password;
+        const userToReturn: Record<string, unknown> = user.toObject();
+        delete userToReturn['password'];
         res.status(200).json({ token, user: userToReturn });
     } catch (error) {
         console.error(error);
@@ -149,25 +171,25 @@ export const getUserData = async (req: AuthenticatedRequest, res: Response): Pro
 
         const user = await UserModel.findById(userId)
             .select('-password')
-            .populate({
+            .populate<{ commandes: PopulatedCommande[] }>({
                 path: 'commandes',
-                options: { sort: { dateCommande: -1 }, limit: 1 } // Seulement la dernière commande
-            }) as any;
+                options: { sort: { dateCommande: -1 }, limit: 1 }
+            });
 
         if (!user) {
             res.status(404).json({ message: 'Utilisateur non trouvé.' });
             return;
         }
 
-        const userObject = user.toObject();
+        const userObject: Record<string, unknown> = user.toObject();
 
         if (user.commandes && user.commandes.length > 0) {
-            userObject.lastCommande = user.commandes[0];
+            userObject['lastCommande'] = user.commandes[0];
         } else {
-            userObject.lastCommande = null;
+            userObject['lastCommande'] = null;
         }
 
-        delete userObject.commandes;
+        delete userObject['commandes'];
 
         res.status(200).json({ user: userObject });
 
@@ -193,7 +215,7 @@ export const getUserDataEnhanced = async (req: AuthenticatedRequest, res: Respon
 
         const user = await UserModel.findById(userId)
             .select('-password')
-            .populate([
+            .populate<{ commandes: PopulatedCommande[]; favorites: PopulatedFavorite[] }>([
                 {
                     path: 'commandes',
                     populate: {
@@ -209,62 +231,62 @@ export const getUserDataEnhanced = async (req: AuthenticatedRequest, res: Respon
                         select: 'marque modele annee prix images disponible'
                     }
                 }
-            ]) as any;
+            ]);
 
         if (!user) {
             res.status(404).json({ message: 'Utilisateur non trouvé.' });
             return;
         }
 
-        const enrichedUser = user.toObject();
-        const commandes = user.commandes || [];
-        const favorites = user.favorites || [];
+        const enrichedUser: Record<string, unknown> = user.toObject();
+        const commandes: PopulatedCommande[] = user.commandes || [];
+        const favorites: PopulatedFavorite[] = user.favorites || [];
 
-        enrichedUser.lastCommande = commandes[0] || null;
+        enrichedUser['lastCommande'] = commandes[0] || null;
 
-        enrichedUser.stats = {
+        enrichedUser['stats'] = {
             totalCommandes: commandes.length,
-            commandesEnCours: commandes.filter((cmd: any) =>
+            commandesEnCours: commandes.filter(cmd =>
                 ['En attente', 'Confirmée', 'En cours'].includes(cmd.statut)
             ).length,
-            commandesLivrees: commandes.filter((cmd: any) =>
+            commandesLivrees: commandes.filter(cmd =>
                 cmd.statut === 'Livrée'
             ).length,
-            commandesAnnulees: commandes.filter((cmd: any) =>
+            commandesAnnulees: commandes.filter(cmd =>
                 cmd.statut === 'Annulée'
             ).length,
             totalFavorites: favorites.length,
-            montantTotalCommandes: commandes.reduce((total: number, cmd: any) =>
+            montantTotalCommandes: commandes.reduce((total, cmd) =>
                 total + (cmd.montantTotal || 0), 0
             )
         };
 
-        enrichedUser.recentCommandes = commandes.slice(0, 5);
+        enrichedUser['recentCommandes'] = commandes.slice(0, 5);
 
-        enrichedUser.recentFavorites = favorites
-            .sort((a: any, b: any) => new Date(b.dateAjout || 0).getTime() - new Date(a.dateAjout || 0).getTime())
+        enrichedUser['recentFavorites'] = [...favorites]
+            .sort((a, b) => new Date(b.dateAjout || 0).getTime() - new Date(a.dateAjout || 0).getTime())
             .slice(0, 5);
 
         if (commandes.length > 0) {
             const marques = commandes
-                .map((cmd: any) => cmd.voiture?.marque)
-                .filter(Boolean);
+                .map(cmd => cmd.voiture?.marque)
+                .filter((marque): marque is string => Boolean(marque));
 
-            const marqueCount = marques.reduce((acc: any, marque: string) => {
+            const marqueCount = marques.reduce<Record<string, number>>((acc, marque) => {
                 acc[marque] = (acc[marque] || 0) + 1;
                 return acc;
             }, {});
 
-            enrichedUser.preferences = {
+            enrichedUser['preferences'] = {
                 marquesFavorites: Object.entries(marqueCount)
-                    .sort(([, a], [, b]) => (b as number) - (a as number))
+                    .sort(([, a], [, b]) => b - a)
                     .slice(0, 3)
                     .map(([marque, count]) => ({ marque, count }))
             };
         }
 
-        delete enrichedUser.commandes;
-        delete enrichedUser.favorites;
+        delete enrichedUser['commandes'];
+        delete enrichedUser['favorites'];
 
         res.status(200).json({
             user: enrichedUser,
@@ -319,10 +341,10 @@ export const getUserDataLight = async (req: AuthenticatedRequest, res: Response)
 export const getUserDataPaginated = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const userId = req.user?.id;
-        const commandesPage = parseInt(req.query.commandesPage as string) || 1;
-        const commandesLimit = parseInt(req.query.commandesLimit as string) || 5;
-        const favoritesPage = parseInt(req.query.favoritesPage as string) || 1;
-        const favoritesLimit = parseInt(req.query.favoritesLimit as string) || 5;
+        const commandesPage = Number.parseInt(req.query.commandesPage as string) || 1;
+        const commandesLimit = Number.parseInt(req.query.commandesLimit as string) || 5;
+        const favoritesPage = Number.parseInt(req.query.favoritesPage as string) || 1;
+        const favoritesLimit = Number.parseInt(req.query.favoritesLimit as string) || 5;
 
         if (!userId) {
             res.status(401).json({ message: 'Non autorisé.' });
@@ -342,18 +364,18 @@ export const getUserDataPaginated = async (req: AuthenticatedRequest, res: Respo
         }
 
         const [totalCommandes, totalFavorites] = await Promise.all([
-            UserModel.aggregate([
+            UserModel.aggregate<{ commandesCount: number }>([
                 { $match: { _id: new Types.ObjectId(userId) } },
                 { $project: { commandesCount: { $size: { $ifNull: ['$commandes', []] } } } }
             ]),
-            UserModel.aggregate([
+            UserModel.aggregate<{ favoritesCount: number }>([
                 { $match: { _id: new Types.ObjectId(userId) } },
                 { $project: { favoritesCount: { $size: { $ifNull: ['$favorites', []] } } } }
             ])
         ]);
 
         const userWithCommandes = await UserModel.findById(userId)
-            .populate({
+            .populate<{ commandes: PopulatedCommande[] }>({
                 path: 'commandes',
                 populate: {
                     path: 'voiture',
@@ -364,10 +386,10 @@ export const getUserDataPaginated = async (req: AuthenticatedRequest, res: Respo
                     skip: (commandesPage - 1) * commandesLimit,
                     limit: commandesLimit
                 }
-            }) as any;
+            });
 
         const userWithFavorites = await UserModel.findById(userId)
-            .populate({
+            .populate<{ favorites: PopulatedFavorite[] }>({
                 path: 'favorites',
                 populate: {
                     path: 'voiture',
@@ -378,15 +400,15 @@ export const getUserDataPaginated = async (req: AuthenticatedRequest, res: Respo
                     skip: (favoritesPage - 1) * favoritesLimit,
                     limit: favoritesLimit
                 }
-            }) as any;
+            });
 
-        const enrichedUser = user.toObject() as any;
-        const commandes = userWithCommandes?.commandes || [];
-        const favorites = userWithFavorites?.favorites || [];
-        const totalCommandesCount = totalCommandes[0]?.commandesCount || 0;
-        const totalFavoritesCount = totalFavorites[0]?.favoritesCount || 0;
+        const enrichedUser: Record<string, unknown> = user.toObject();
+        const commandes: PopulatedCommande[] = userWithCommandes?.commandes || [];
+        const favorites: PopulatedFavorite[] = userWithFavorites?.favorites || [];
+        const totalCommandesCount: number = totalCommandes[0]?.commandesCount || 0;
+        const totalFavoritesCount: number = totalFavorites[0]?.favoritesCount || 0;
 
-        enrichedUser.commandesPaginated = {
+        enrichedUser['commandesPaginated'] = {
             data: commandes,
             pagination: {
                 currentPage: commandesPage,
@@ -397,7 +419,7 @@ export const getUserDataPaginated = async (req: AuthenticatedRequest, res: Respo
             }
         };
 
-        enrichedUser.favoritesPaginated = {
+        enrichedUser['favoritesPaginated'] = {
             data: favorites,
             pagination: {
                 currentPage: favoritesPage,
@@ -408,7 +430,7 @@ export const getUserDataPaginated = async (req: AuthenticatedRequest, res: Respo
             }
         };
 
-        enrichedUser.stats = {
+        enrichedUser['stats'] = {
             totalCommandes: totalCommandesCount,
             totalFavorites: totalFavoritesCount,
             lastCommande: commandes[0] || null

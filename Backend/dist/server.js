@@ -6,8 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // src/index.ts - Configuration CORS corrigée
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const path_1 = __importDefault(require("path"));
-const fs_1 = __importDefault(require("fs"));
+const node_path_1 = __importDefault(require("node:path"));
+const node_fs_1 = __importDefault(require("node:fs"));
 const cors_1 = __importDefault(require("cors"));
 const db_1 = __importDefault(require("./config/db"));
 const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
@@ -18,6 +18,10 @@ const cars_routes_1 = __importDefault(require("./routes/cars.routes"));
 const commands_routes_1 = __importDefault(require("./routes/commands.routes"));
 const ventes_routes_1 = __importDefault(require("./routes/ventes.routes"));
 const dashboard_routes_1 = __importDefault(require("./routes/dashboard.routes"));
+const favorites_routes_1 = __importDefault(require("./routes/favorites.routes"));
+const user_routes_1 = __importDefault(require("./routes/user.routes"));
+const achat_routes_1 = __importDefault(require("./routes/achat.routes"));
+const location_routes_1 = __importDefault(require("./routes/location.routes"));
 dotenv_1.default.config();
 const server = (0, express_1.default)();
 // Configuration CORS améliorée
@@ -28,8 +32,9 @@ const allowedOrigins = [
     'http://50.50.67.135:3000',
     'http://localhost:5173',
     'https://car-react-app-project.vercel.app',
+    'https://react-client-frontend-car.vercel.app',
     /^https:\/\/.*\.vercel\.app$/,
-    process.env.FRONTEND_URL
+    ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [])
 ];
 server.use((0, cors_1.default)({
     origin: function (origin, callback) {
@@ -73,12 +78,12 @@ server.use((req, res, next) => {
             return allowedOrigin === origin;
         }
         else if (allowedOrigin instanceof RegExp) {
-            return allowedOrigin.test(origin);
+            return origin !== undefined && allowedOrigin.test(origin);
         }
         return false;
     });
     if (isAllowed) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Origin', origin ?? '');
     }
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
@@ -92,9 +97,9 @@ server.use((req, res, next) => {
 });
 server.use(express_1.default.json());
 // S'assurer que uploads existe et le servir
-const uploadsPath = path_1.default.join(process.cwd(), 'uploads');
-if (!fs_1.default.existsSync(uploadsPath)) {
-    fs_1.default.mkdirSync(uploadsPath, { recursive: true });
+const uploadsPath = node_path_1.default.join(process.cwd(), 'uploads');
+if (!node_fs_1.default.existsSync(uploadsPath)) {
+    node_fs_1.default.mkdirSync(uploadsPath, { recursive: true });
 }
 server.use('/uploads', express_1.default.static(uploadsPath));
 // Connexion DB
@@ -108,6 +113,10 @@ server.use('/api/version/auth', auth_routes_1.default);
 server.use('/api/version/clients', clients_routes_1.default);
 server.use('/api/version/admin', admin_routes_1.default);
 server.use('/api/version/dashboard', dashboard_routes_1.default);
+server.use('/api/version/favorites', favorites_routes_1.default);
+server.use('/api/version/client', user_routes_1.default);
+server.use('/api/version/achat', achat_routes_1.default);
+server.use('/api/version/locations', location_routes_1.default);
 // Route de santé pour vérifier le serveur
 server.get('/health', (req, res) => {
     res.status(200).json({
@@ -116,7 +125,7 @@ server.get('/health', (req, res) => {
         timestamp: new Date().toISOString()
     });
 });
-server.use(errorMiddleware_1.errorHandler);
-server.use(errorMiddleware_1.notFound);
 server.get('/', (_req, res) => res.send('Hello World'));
+server.use(errorMiddleware_1.notFound);
+server.use(errorMiddleware_1.errorHandler);
 exports.default = server;

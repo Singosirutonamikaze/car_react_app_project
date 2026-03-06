@@ -3,8 +3,13 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import AdminModel from '../models/Admin';
 
+interface JwtAdminPayload {
+  id: string;
+  email?: string;
+}
+
 export interface AuthenticatedRequest extends Request {
-  admin?: any;
+  admin?: { id: string; email?: string };
 }
 
 export const adminAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
@@ -23,7 +28,7 @@ export const adminAuth = async (req: AuthenticatedRequest, res: Response, next: 
       throw new Error('JWT_SECRET non défini');
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET) as any;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtAdminPayload;
     const admin = await AdminModel.findById(decoded.id).select('-password');
     
     if (!admin || !admin.isActive) {

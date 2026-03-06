@@ -1,22 +1,13 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.downloadsCommande = exports.deleteCommande = exports.updateCommande = exports.addCommande = exports.getAllCommande = void 0;
 const Commande_1 = __importDefault(require("../models/Commande"));
-const getAllCommande = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getAllCommande = async (req, res) => {
     try {
-        const commandes = yield Commande_1.default.find()
+        const commandes = await Commande_1.default.find()
             .populate('client', 'name surname email')
             .populate('voiture', 'marque model year price');
         res.status(200).json({
@@ -32,9 +23,9 @@ const getAllCommande = (req, res) => __awaiter(void 0, void 0, void 0, function*
             message: 'Erreur interne du serveur'
         });
     }
-});
+};
 exports.getAllCommande = getAllCommande;
-const addCommande = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const addCommande = async (req, res) => {
     try {
         const { client, voiture, statut, montant, fraisLivraison, modePaiement, adresseLivraison, dateLivraisonPrevue, notes } = req.body;
         // Validation des données requises
@@ -56,9 +47,9 @@ const addCommande = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             dateLivraisonPrevue,
             notes
         });
-        yield nouvelleCommande.save();
+        await nouvelleCommande.save();
         // Populer les références pour la réponse
-        const commandePopulee = yield Commande_1.default.findById(nouvelleCommande._id)
+        const commandePopulee = await Commande_1.default.findById(nouvelleCommande._id)
             .populate('client', 'name surname email')
             .populate('voiture', 'marque model year price');
         res.status(201).json({
@@ -74,9 +65,9 @@ const addCommande = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             message: 'Erreur interne du serveur'
         });
     }
-});
+};
 exports.addCommande = addCommande;
-const updateCommande = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updateCommande = async (req, res) => {
     try {
         const { id } = req.params;
         const updates = req.body;
@@ -91,7 +82,7 @@ const updateCommande = (req, res) => __awaiter(void 0, void 0, void 0, function*
         if (updates.montantTotal) {
             delete updates.montantTotal;
         }
-        const commande = yield Commande_1.default.findByIdAndUpdate(id, updates, { new: true, runValidators: true }).populate('client', 'name surname email')
+        const commande = await Commande_1.default.findByIdAndUpdate(id, updates, { new: true, runValidators: true }).populate('client', 'name surname email')
             .populate('voiture', 'marque model year price');
         if (!commande) {
             res.status(404).json({
@@ -113,9 +104,9 @@ const updateCommande = (req, res) => __awaiter(void 0, void 0, void 0, function*
             message: 'Erreur interne du serveur'
         });
     }
-});
+};
 exports.updateCommande = updateCommande;
-const deleteCommande = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteCommande = async (req, res) => {
     try {
         const { id } = req.params;
         if (!id) {
@@ -125,7 +116,7 @@ const deleteCommande = (req, res) => __awaiter(void 0, void 0, void 0, function*
             });
             return;
         }
-        const commande = yield Commande_1.default.findByIdAndDelete(id);
+        const commande = await Commande_1.default.findByIdAndDelete(id);
         if (!commande) {
             res.status(404).json({
                 success: false,
@@ -145,35 +136,34 @@ const deleteCommande = (req, res) => __awaiter(void 0, void 0, void 0, function*
             message: 'Erreur interne du serveur'
         });
     }
-});
+};
 exports.deleteCommande = deleteCommande;
-const downloadsCommande = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const downloadsCommande = async (req, res) => {
     try {
-        const commandes = yield Commande_1.default.find()
+        const commandes = await Commande_1.default.find()
             .populate('client', 'name surname email')
             .populate('voiture', 'marque model year price');
         // Formater les données pour l'export
         const dataForExport = commandes.map(commande => {
-            var _a, _b, _c;
             let clientName = '';
             let clientEmail = '';
             if (commande.client && typeof commande.client === 'object' && 'name' in commande.client && 'surname' in commande.client && 'email' in commande.client) {
-                clientName = `${commande.client.name} ${commande.client.surname}`;
-                clientEmail = commande.client.email;
+                const c = commande.client;
+                clientName = `${c.name} ${c.surname}`;
+                clientEmail = c.email;
             }
             else {
-                clientName = ((_a = commande.client) === null || _a === void 0 ? void 0 : _a.toString()) || '';
-                clientEmail = '';
+                clientName = commande.client?.toString() || '';
             }
             let voitureInfo = '';
             let voiturePrice = '';
             if (commande.voiture && typeof commande.voiture === 'object' && 'marque' in commande.voiture && 'model' in commande.voiture && 'year' in commande.voiture && 'price' in commande.voiture) {
-                voitureInfo = `${commande.voiture.marque} ${commande.voiture.model} (${commande.voiture.year})`;
-                voiturePrice = commande.voiture.price;
+                const v = commande.voiture;
+                voitureInfo = `${v.marque} ${v.model} (${v.year})`;
+                voiturePrice = v.price;
             }
             else {
-                voitureInfo = ((_b = commande.voiture) === null || _b === void 0 ? void 0 : _b.toString()) || '';
-                voiturePrice = '';
+                voitureInfo = commande.voiture?.toString() || '';
             }
             return {
                 'Numéro Commande': commande._id,
@@ -188,7 +178,7 @@ const downloadsCommande = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 'Mode Paiement': commande.modePaiement,
                 'Date Commande': commande.dateCommande,
                 'Date Livraison Prévue': commande.dateLivraisonPrevue,
-                'Ville Livraison': ((_c = commande.adresseLivraison) === null || _c === void 0 ? void 0 : _c.ville) || ''
+                'Ville Livraison': commande.adresseLivraison?.ville || ''
             };
         });
         res.setHeader('Content-Type', 'text/csv');
@@ -206,5 +196,5 @@ const downloadsCommande = (req, res) => __awaiter(void 0, void 0, void 0, functi
             message: 'Erreur lors de l\'export des commandes'
         });
     }
-});
+};
 exports.downloadsCommande = downloadsCommande;

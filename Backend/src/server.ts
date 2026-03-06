@@ -1,9 +1,11 @@
 // src/index.ts - Configuration CORS corrigée
 import express from 'express';
 import dotenv from 'dotenv';
-import path from 'path';
-import fs from 'fs';
+import path from 'node:path';
+import fs from 'node:fs';
 import cors from 'cors';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './config/swagger';
 import connectDB from './config/db';
 import authRoutes from './routes/auth.routes';
 import clientsRoutes from './routes/clients.routes';
@@ -16,6 +18,7 @@ import dashboardRoutes from './routes/dashboard.routes';
 import favoritesRoutes from './routes/favorites.routes';
 import clientRoutes from './routes/user.routes';
 import accountsRoutes from './routes/achat.routes';
+import locationRoutes from './routes/location.routes';
 
 dotenv.config();
 
@@ -31,12 +34,12 @@ const allowedOrigins = [
   'https://car-react-app-project.vercel.app',
   'https://react-client-frontend-car.vercel.app',
   /^https:\/\/.*\.vercel\.app$/,
-  process.env.FRONTEND_URL
-];
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [])
+] as (string | RegExp)[];
 
 server.use(
   cors({
-    origin: function (origin, callback) {
+    origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
       if (!origin) return callback(null, true);
 
       // Vérifier si l'origin est autorisé
@@ -65,7 +68,7 @@ server.use(
       'Origin'
     ],
     credentials: true,
-    optionsSuccessStatus: 200 
+    optionsSuccessStatus: 200
   })
 );
 
@@ -78,13 +81,13 @@ server.use((req, res, next) => {
     if (typeof allowedOrigin === 'string') {
       return allowedOrigin === origin;
     } else if (allowedOrigin instanceof RegExp) {
-      return allowedOrigin.test(origin as string);
+      return origin !== undefined && allowedOrigin.test(origin);
     }
     return false;
   });
 
   if (isAllowed) {
-    res.setHeader('Access-Control-Allow-Origin', origin as string);
+    res.setHeader('Access-Control-Allow-Origin', origin ?? '');
   }
 
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -118,6 +121,35 @@ server.use('/uploads', express.static(uploadsPath));
 // Connexion DB
 connectDB();
 
+// ─── Documentation API (Swagger) ──────────────────────────────────────────────
+const swaggerUiOptions: swaggerUi.SwaggerUiOptions = {
+  customSiteTitle: 'Next Car Dev — API Docs',
+  customCss: `
+    .swagger-ui .topbar { background-color: #1a1a2e; }
+    .swagger-ui .topbar .download-url-wrapper { display: none; }
+    .swagger-ui .info .title { color: #e94560; }
+  `,
+  swaggerOptions: {
+    persistAuthorization: true,
+    displayRequestDuration: true,
+    docExpansion: 'none',
+    filter: true,
+  },
+};
+
+server.use(
+  '/api/docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, swaggerUiOptions)
+);
+
+// Endpoint pour récupérer le JSON brut de la spec (utile pour Postman, Insomnia…)
+server.get('/api/docs.json', (_req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
+
 // Routes protégées avec permissions spécifiques
 server.use('/api/admin/cars', carRoutes);
 server.use('/api/admin/orders', orderRoutes);
@@ -131,6 +163,7 @@ server.use('/api/version/dashboard', dashboardRoutes);
 server.use('/api/version/favorites', favoritesRoutes);
 server.use('/api/version/client', clientRoutes);
 server.use('/api/version/achat', accountsRoutes);
+server.use('/api/version/locations', locationRoutes);
 
 // Route de santé pour vérifier le serveur
 server.get('/health', (req, res) => {
@@ -141,9 +174,8 @@ server.get('/health', (req, res) => {
   });
 });
 
-server.use(errorHandler);
-server.use(notFound);
-
 server.get('/', (_req, res) => res.send('Hello World'));
+server.use(notFound);
+server.use(errorHandler);
 
 export default server;

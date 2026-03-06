@@ -1,6 +1,7 @@
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
+import { Request } from 'express';
+import path from 'node:path';
+import fs from 'node:fs';
 
 
 const uploadDir = path.join(process.cwd(), 'uploads');
@@ -10,12 +11,12 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 const storage = multer.diskStorage({
-    destination: (_req, _file, cb) => cb(null, uploadDir),
-    filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname.replace(/\s+/g, '_')}`)
+    destination: (_req: Request, _file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => cb(null, uploadDir),
+    filename: (_req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => cb(null, `${Date.now()}-${file.originalname.replaceAll(' ', '_')}`)
 });
 
 
-const fileFilter: multer.FileFilterCallback = (_req, file, cb) => {
+const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
     const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
     if (allowed.includes(file.mimetype)) {
         cb(null, true);

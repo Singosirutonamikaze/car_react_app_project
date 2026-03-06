@@ -66,15 +66,15 @@ carSchema.index({ price: 1 });
 carSchema.index({ ville: 1 });
 
 // Méthode pour formater le prix
-carSchema.methods.getFormattedPrice = function() {
+carSchema.methods.getFormattedPrice = function () {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
-    currency: 'Frcfa'
+    currency: 'XOF'
   }).format(this.price);
 };
 
 // Méthode pour obtenir le nom complet de la voiture
-carSchema.methods.getFullName = function() {
+carSchema.methods.getFullName = function () {
   return `${this.marque} ${this.modelCar} ${this.year}`;
 };
 

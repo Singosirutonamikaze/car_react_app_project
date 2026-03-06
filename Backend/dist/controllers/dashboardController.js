@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -17,76 +8,67 @@ const Commande_1 = __importDefault(require("../models/Commande"));
 const Vente_1 = __importDefault(require("../models/Vente"));
 const Car_1 = __importDefault(require("../models/Car"));
 const Client_1 = __importDefault(require("../models/Client"));
-const getDashboardData = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getDashboardData = async (req, res) => {
     try {
         console.log("Début de la récupération des données dashboard...");
-        // Récupérer toutes les données séparément
-        const clients = yield Client_1.default.find().select('-password').lean();
-        const voitures = yield Car_1.default.find().lean();
-        const commandes = yield Commande_1.default.find()
+        const clients = await Client_1.default.find().select('-password').lean();
+        const voitures = await Car_1.default.find().lean();
+        const commandes = await Commande_1.default.find()
             .populate('client', 'name surname email phone profileImageUrl')
             .populate('voiture', 'marque model year price couleur ville')
             .lean();
-        const ventes = yield Vente_1.default.find()
+        const ventes = await Vente_1.default.find()
             .populate('client', 'name surname email phone profileImageUrl')
             .populate('voiture', 'marque model year price couleur')
             .populate('commande', 'statut montantTotal')
             .lean();
         console.log(`Données récupérées - Clients: ${clients.length}, Voitures: ${voitures.length}, Commandes: ${commandes.length}, Ventes: ${ventes.length}`);
-        // Calculer les statistiques de base
         const totalClients = clients.length;
         const totalVoitures = voitures.length;
-        const voituresDisponibles = voitures.filter((v) => v.disponible).length;
+        const voituresDisponibles = voitures.filter(v => v.disponible).length;
         const totalCommandes = commandes.length;
         const totalVentes = ventes.length;
-        // Revenu total (toutes les ventes confirmées ou payées)
         const revenueTotal = ventes
-            .filter((v) => v.statut === 'Payée' || v.statut === 'Confirmée')
+            .filter(v => v.statut === 'Payée' || v.statut === 'Confirmée')
             .reduce((sum, vente) => sum + (vente.prixVente || 0), 0);
-        // Période des 30 derniers jours
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         console.log(`Date de référence 30 jours: ${thirtyDaysAgo.toISOString()}`);
-        // Commandes des 30 derniers jours (utiliser createdAt)
         const commandesRecent = commandes
-            .filter((c) => {
+            .filter(c => {
             const date = c.createdAt;
             return date && new Date(date) >= thirtyDaysAgo;
         })
             .sort((a, b) => {
-            const dateA = a.createdAt || new Date(0);
-            const dateB = b.createdAt || new Date(0);
+            const dateA = a.createdAt ?? new Date(0);
+            const dateB = b.createdAt ?? new Date(0);
             return new Date(dateB).getTime() - new Date(dateA).getTime();
         });
-        // Ventes des 30 derniers jours (utiliser createdAt au lieu de dateVente)
         const ventesRecent = ventes
-            .filter((v) => {
-            const date = v.createdAt; // Utiliser createdAt plutôt que dateVente
+            .filter(v => {
+            const date = v.createdAt;
             return date && new Date(date) >= thirtyDaysAgo;
         })
             .sort((a, b) => {
-            const dateA = a.createdAt || new Date(0);
-            const dateB = b.createdAt || new Date(0);
+            const dateA = a.createdAt ?? new Date(0);
+            const dateB = b.createdAt ?? new Date(0);
             return new Date(dateB).getTime() - new Date(dateA).getTime();
         });
-        // Revenu des 30 derniers jours
         const revenue30Jours = ventesRecent
-            .filter((v) => v.statut === 'Payée' || v.statut === 'Confirmée')
+            .filter(v => v.statut === 'Payée' || v.statut === 'Confirmée')
             .reduce((sum, vente) => sum + (vente.prixVente || 0), 0);
-        // Log des dates des ventes pour le débogage
         console.log("Dates de création des ventes:");
-        ventes.forEach((v) => {
+        ventes.forEach(v => {
             console.log(`- Vente ${v._id}: ${v.createdAt}, statut: ${v.statut}, prix: ${v.prixVente}`);
         });
-        // Préparer les données de réponse
-        const clientsListe = clients.map((client) => ({
+        const clientsListe = clients.map(client => ({
             id: client._id,
             nom: client.name,
             prenom: client.surname,
             email: client.email,
             profileImageUrl: client.profileImageUrl
         }));
-        const voituresListe = voitures.map((voiture) => ({
+        const voituresListe = voitures.map(voiture => ({
             id: voiture._id,
             marque: voiture.marque,
             modele: voiture.model,
@@ -96,16 +78,15 @@ const getDashboardData = (req, res) => __awaiter(void 0, void 0, void 0, functio
             ville: voiture.ville,
             disponible: voiture.disponible
         }));
-        // Commandes récentes (toutes, pas seulement 30 jours)
         const commandesRecentesListe = commandes
-            .filter((commande) => commande.client && commande.voiture)
+            .filter(commande => commande.client && commande.voiture)
             .sort((a, b) => {
-            const dateA = a.dateCommande || a.createdAt || new Date(0);
-            const dateB = b.dateCommande || b.createdAt || new Date(0);
+            const dateA = a.dateCommande ?? a.createdAt ?? new Date(0);
+            const dateB = b.dateCommande ?? b.createdAt ?? new Date(0);
             return new Date(dateB).getTime() - new Date(dateA).getTime();
         })
             .slice(0, 10)
-            .map((commande) => ({
+            .map(commande => ({
             id: commande._id,
             client: {
                 id: commande.client._id,
@@ -126,16 +107,15 @@ const getDashboardData = (req, res) => __awaiter(void 0, void 0, void 0, functio
             dateCommande: commande.dateCommande,
             dateLivraisonPrevue: commande.dateLivraisonPrevue
         }));
-        // Ventes récentes (toutes, pas seulement 30 jours)
         const ventesRecentesListe = ventes
-            .filter((vente) => vente.client && vente.voiture)
+            .filter(vente => vente.client && vente.voiture)
             .sort((a, b) => {
-            const dateA = a.dateVente || a.createdAt || new Date(0);
-            const dateB = b.dateVente || b.createdAt || new Date(0);
+            const dateA = a.dateVente ?? a.createdAt ?? new Date(0);
+            const dateB = b.dateVente ?? b.createdAt ?? new Date(0);
             return new Date(dateB).getTime() - new Date(dateA).getTime();
         })
             .slice(0, 10)
-            .map((vente) => ({
+            .map(vente => ({
             id: vente._id,
             client: {
                 id: vente.client._id,
@@ -193,8 +173,8 @@ const getDashboardData = (req, res) => __awaiter(void 0, void 0, void 0, functio
         res.status(500).json({
             success: false,
             message: 'Erreur interne du serveur',
-            error: error.message
+            error: error instanceof Error ? error.message : 'Erreur inconnue'
         });
     }
-});
+};
 exports.getDashboardData = getDashboardData;

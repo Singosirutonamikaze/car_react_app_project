@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { FavoriteModel } from '../models/Favorites';
 import UserModel from '../models/Client';
-import mongoose, { Types } from 'mongoose';
+import { Types } from 'mongoose';
 
 interface AuthenticatedRequest extends Request {
     user?: {
@@ -12,8 +12,8 @@ interface AuthenticatedRequest extends Request {
 export const getUserFavorites = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const userId = req.user?.id;
-        const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 12;
+        const page = Number.parseInt(req.query.page as string) || 1;
+        const limit = Number.parseInt(req.query.limit as string) || 12;
         const skip = (page - 1) * limit;
 
         if (!userId) {
@@ -283,7 +283,7 @@ export const toggleFavoriteSimple = async (req: AuthenticatedRequest, res: Respo
             return;
         }
 
-        const voitureObjectId = new Types.ObjectId(voitureId);
+        const voitureObjectId = new Types.ObjectId(String(voitureId));
 
         // Chercher un favori existant pour cette voiture ET cet utilisateur
         const existingFavorite = await FavoriteModel.findOne({
@@ -365,7 +365,7 @@ export const toggleFavoriteClean = async (req: AuthenticatedRequest, res: Respon
             return;
         }
 
-        const voitureObjectId = new Types.ObjectId(voitureId);
+        const voitureObjectId = new Types.ObjectId(String(voitureId));
 
         // Conversion sûre des favoris en ObjectIds
         const favoriteIds = (user.favorites || []).map(fav => {
@@ -374,7 +374,7 @@ export const toggleFavoriteClean = async (req: AuthenticatedRequest, res: Respon
             } catch {
                 return null;
             }
-        }).filter(Boolean) as Types.ObjectId[];
+        }).filter(id => id !== null);
 
         // Chercher si déjà en favoris
         const existingFavorite = await FavoriteModel.findOne({

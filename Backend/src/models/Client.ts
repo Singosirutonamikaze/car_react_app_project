@@ -38,6 +38,10 @@ const ClientSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Achat'
     }],
+    locations: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Location'
+    }],
   },
   { timestamps: true }
 );
@@ -48,7 +52,7 @@ ClientSchema.pre('save', async function (next) {
   if (!user.isModified('password')) {
     return next();
   }
-  
+
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(user.password, salt);
   next();

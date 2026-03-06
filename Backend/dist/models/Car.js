@@ -71,7 +71,7 @@ carSchema.index({ ville: 1 });
 carSchema.methods.getFormattedPrice = function () {
     return new Intl.NumberFormat('fr-FR', {
         style: 'currency',
-        currency: 'Frcfa'
+        currency: 'XOF'
     }).format(this.price);
 };
 // Méthode pour obtenir le nom complet de la voiture

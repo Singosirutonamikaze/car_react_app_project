@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { FilterQuery } from 'mongoose';
 import VenteModel from '../models/Vente';
 import CommandeModel from '../models/Commande';
 import CarModel from '../models/Car';
@@ -8,7 +9,7 @@ export const getAllVentes = async (req: Request, res: Response): Promise<void> =
   try {
     const { statut, startDate, endDate } = req.query;
 
-    let filter: any = {};
+    let filter: FilterQuery<IVente> = {};
 
     if (statut) filter.statut = statut;
     if (startDate || endDate) {
@@ -104,11 +105,12 @@ export const createVente = async (req: Request, res: Response): Promise<void> =>
       message: 'Vente créée avec succès',
       data: ventePopulee
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erreur lors de la création de la vente:', error);
 
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map((err: any) => ({
+    if (error instanceof Error && error.name === 'ValidationError') {
+      const validationError = error as Error & { errors: Record<string, { path: string; message: string }> };
+      const errors = Object.values(validationError.errors).map(err => ({
         field: err.path,
         message: err.message
       }));
@@ -155,11 +157,12 @@ export const updateVente = async (req: Request, res: Response): Promise<void> =>
       message: 'Vente mise à jour avec succès',
       data: vente
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Erreur lors de la mise à jour de la vente:', error);
 
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map((err: any) => ({
+    if (error instanceof Error && error.name === 'ValidationError') {
+      const validationError = error as Error & { errors: Record<string, { path: string; message: string }> };
+      const errors = Object.values(validationError.errors).map(err => ({
         field: err.path,
         message: err.message
       }));
