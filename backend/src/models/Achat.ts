@@ -4,7 +4,7 @@ import { IAchatDocument } from "../interfaces/IAchat";
 const achatSchema = new Schema<IAchatDocument>({
   voiture: {
     type: Schema.Types.ObjectId,
-    ref: 'Voiture',
+    ref: 'Car',
     required: true
   },
   commande: {

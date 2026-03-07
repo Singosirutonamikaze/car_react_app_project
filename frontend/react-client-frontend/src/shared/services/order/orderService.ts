@@ -1,4 +1,4 @@
-import type { Order } from "../../types/order";
+import type { CreateOrderResponse, Order } from "../../types/order";
 import { API_CONFIG, API_PATHS } from "../../utils/constants";
 
 async function parseJsonSafe<T>(response: Response): Promise<T> {
@@ -48,7 +48,7 @@ export const orderService = {
     return match;
   },
 
-  async createOrder(payload: Order): Promise<Order> {
+  async createOrder(payload: Order): Promise<CreateOrderResponse> {
     const response = await fetch(`${API_CONFIG.BASE_URL}${API_PATHS.ORDERS.CREATE}`, {
       method: "POST",
       headers: getAuthHeaders(),
@@ -60,8 +60,13 @@ export const orderService = {
       throw new Error(errorData.message || "Echec de la creation de la commande");
     }
 
-    const result = await parseJsonSafe<{ data?: Order } | Order>(response);
-    return "data" in result && result.data ? result.data : (result as Order);
+    const result = await parseJsonSafe<CreateOrderResponse | Order>(response);
+
+    if (result && typeof result === "object" && "data" in result) {
+      return result;
+    }
+
+    return { data: result as Order };
   },
 
   async updateOrder(orderId: string, payload: Partial<Order>): Promise<Order> {

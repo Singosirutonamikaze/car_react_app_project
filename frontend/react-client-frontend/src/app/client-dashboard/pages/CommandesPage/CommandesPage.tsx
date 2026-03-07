@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FiPackage } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useSearchParams } from "react-router-dom";
@@ -8,10 +8,10 @@ import EmptyState from "../../components/EmptyState";
 import PageHeader from "../../components/PageHeader";
 import useCommandesData from "../../../../shared/hooks/dashboard/useCommandesData";
 import { carService } from "../../../../shared/services/car";
+import { dashboardService } from "../../../../shared/services/dashboard";
 import { orderService } from "../../../../shared/services/order";
 import uploadService from "../../../../shared/services/upload";
 import type { Car } from "../../../../shared/types/car";
-import { API_CONFIG, API_PATHS } from "../../../../shared/utils/constants";
 
 interface CommandeFormState {
   carId: string;
@@ -30,6 +30,19 @@ interface OrderCar {
   modelCar?: string;
   image?: string;
   images?: string[];
+}
+
+interface AchatRow {
+  statut?: string;
+  dateAchat?: string;
+  modePaiement?: string;
+  commande?: string | { _id?: string };
+}
+
+interface AchatDetails {
+  statut: string;
+  dateAchat: string;
+  modePaiement: string;
 }
 
 const initialCommandeForm: CommandeFormState = {
@@ -66,8 +79,9 @@ function normalizeStatus(value?: string): string {
 function getStatusClassName(status?: string): string {
   const normalized = normalizeStatus(status);
   if (normalized === "en attente") return "bg-amber-500/20 text-amber-200 border-amber-400/40";
-  if (normalized === "confirmee" || normalized === "en cours") return "bg-blue-500/20 text-blue-200 border-blue-400/40";
-  if (normalized === "livree") return "bg-emerald-500/20 text-emerald-200 border-emerald-400/40";
+  if (normalized === "confirmee" || normalized === "confirme" || normalized === "en cours") return "bg-blue-500/20 text-blue-200 border-blue-400/40";
+  if (normalized === "paye") return "bg-cyan-500/20 text-cyan-200 border-cyan-400/40";
+  if (normalized === "livree" || normalized === "termine") return "bg-emerald-500/20 text-emerald-200 border-emerald-400/40";
   if (normalized === "annulee") return "bg-rose-500/20 text-rose-200 border-rose-400/40";
   return "bg-slate-500/20 text-slate-200 border-slate-400/40";
 }
@@ -84,22 +98,6 @@ function getOrderImage(orderCar: OrderCar | null): string {
   return "";
 }
 
-function getOrderCarId(order: { voiture?: unknown }): string {
-  if (!order.voiture) return "";
-  if (typeof order.voiture === "string") return order.voiture;
-
-  const car = order.voiture as { _id?: string };
-  return car._id || "";
-}
-
-function normalizeModePaiement(modePaiement?: string): "Espèces" | "Virement" | "Chèque" | "Financement" {
-  if (modePaiement === "Virement" || modePaiement === "Chèque" || modePaiement === "Financement") {
-    return modePaiement;
-  }
-
-  return "Espèces";
-}
-
 function CommandesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { displayName, isAuthenticated, isLoading, error, orders, refreshOrders } = useCommandesData();
@@ -107,7 +105,7 @@ function CommandesPage() {
   const [cars, setCars] = useState<Car[]>([]);
   const [carsLoading, setCarsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [buyingOrderId, setBuyingOrderId] = useState<string | null>(null);
+  const [achatByOrderId, setAchatByOrderId] = useState<Record<string, AchatDetails>>({});
   const [formState, setFormState] = useState<CommandeFormState>(initialCommandeForm);
 
   const itemsPerPage = 6;
@@ -144,6 +142,49 @@ function CommandesPage() {
 
   const selectedCar = useMemo(() => cars.find((car) => car._id === formState.carId), [cars, formState.carId]);
 
+  const refreshLinkedAchats = useCallback(async () => {
+    if (!isAuthenticated) {
+      setAchatByOrderId({});
+      return;
+    }
+
+    try {
+      const token = globalThis.localStorage.getItem("token");
+      if (!token) {
+        setAchatByOrderId({});
+        return;
+      }
+
+      const achatsResponse = await dashboardService.getUserAchats(token, 1, 200);
+      const achats = Array.isArray(achatsResponse.achats) ? (achatsResponse.achats as unknown as AchatRow[]) : [];
+
+      const nextMap = achats.reduce<Record<string, AchatDetails>>((acc, achat) => {
+        const commande = achat.commande;
+        const commandeId = typeof commande === "string" ? commande : commande?._id;
+        if (commandeId && achat.statut) {
+          acc[commandeId] = {
+            statut: achat.statut,
+            dateAchat: achat.dateAchat || "",
+            modePaiement: achat.modePaiement || "",
+          };
+        }
+        return acc;
+      }, {});
+
+      setAchatByOrderId(nextMap);
+    } catch {
+      setAchatByOrderId({});
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    void refreshLinkedAchats();
+  }, [refreshLinkedAchats]);
+
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([refreshOrders(), refreshLinkedAchats()]);
+  }, [refreshLinkedAchats, refreshOrders]);
+
   const submitCreateOrder = async () => {
     if (!formState.carId) {
       toast.error("Selectionnez une voiture avant de commander");
@@ -158,9 +199,9 @@ function CommandesPage() {
     setIsSubmitting(true);
     try {
       const montant = Number(selectedCar.price ?? 0);
-      await orderService.createOrder({
+      const creationResult = await orderService.createOrder({
         voiture: formState.carId,
-        statut: "En attente",
+        statut: "Confirmée",
         montant,
         fraisLivraison: 0,
         montantTotal: montant,
@@ -174,10 +215,15 @@ function CommandesPage() {
         dateCommande: new Date(),
         notes: formState.notes || undefined,
       });
-      toast.success("Commande creee avec succes");
+
+      if (!creationResult.data || !creationResult.achat) {
+        throw new Error("Reponse invalide: data + achat attendus apres la commande.");
+      }
+
+      toast.success("Commande creee avec succes (achat lie confirme)");
       setFormState(initialCommandeForm);
       setPage(1);
-      await refreshOrders();
+      await Promise.all([refreshOrders(), refreshLinkedAchats()]);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erreur lors de la creation de la commande";
       toast.error(message);
@@ -191,59 +237,10 @@ function CommandesPage() {
     void submitCreateOrder();
   };
 
-  const handleBuyOrder = async (order: {
-    _id?: string;
-    voiture?: unknown;
-    montant?: number;
-    montantTotal?: number;
-    modePaiement?: string;
-  }) => {
-    const commandeId = order._id;
-    const voitureId = getOrderCarId(order);
-    const prixAchat = Number(order.montantTotal ?? order.montant ?? 0);
-
-    if (!commandeId || !voitureId) {
-      toast.error("Commande invalide: achat impossible.");
-      return;
-    }
-
-    setBuyingOrderId(commandeId);
-
-    try {
-      const token = globalThis.localStorage.getItem("token");
-      const response = await fetch(`${API_CONFIG.BASE_URL}${API_PATHS.ACHATS.CREATE}`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          voitureId,
-          commandeId,
-          prixAchat,
-          modePaiement: normalizeModePaiement(order.modePaiement),
-        }),
-      });
-
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(result?.message || "Erreur lors de la creation de l'achat");
-      }
-
-      toast.success("Achat cree avec succes");
-      await refreshOrders();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Erreur lors de la creation de l'achat";
-      toast.error(message);
-    } finally {
-      setBuyingOrderId(null);
-    }
-  };
-
   return (
     <AuthenticatedContent isLoading={isLoading} isAuthenticated={isAuthenticated}>
       <section className="space-y-6">
-        <PageHeader title="Mes Commandes" subtitle={`Bienvenue, ${displayName}`.trim()} icon={FiPackage} onRefresh={refreshOrders} />
+        <PageHeader title="Mes Commandes" subtitle={`Bienvenue, ${displayName}`.trim()} icon={FiPackage} onRefresh={handleRefresh} />
 
         {error && <div className="text-red-200 bg-red-900/30 border border-red-500/40 rounded-lg p-4">{error}</div>}
 
@@ -334,17 +331,25 @@ function CommandesPage() {
                         {order.statut || "Inconnu"}
                       </span>
                     </div>
+                    {order._id && (
+                      <div className="mt-2">
+                        <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${getStatusClassName(achatByOrderId[order._id]?.statut)}`}>
+                          Achat lie: {achatByOrderId[order._id]?.statut || "Non trouve"}
+                        </span>
+                      </div>
+                    )}
+                    {order._id && achatByOrderId[order._id] && (
+                      <div className="mt-2 rounded-md border client-theme-card p-2">
+                        <p className="text-xs client-theme-text-secondary font-medium">Détails achat</p>
+                        <p className="text-xs client-theme-text-secondary mt-1">
+                          Date: <span className="client-theme-text-primary">{formatDate(achatByOrderId[order._id].dateAchat || undefined)}</span>
+                        </p>
+                        <p className="text-xs client-theme-text-secondary mt-0.5">
+                          Mode paiement: <span className="client-theme-text-primary">{achatByOrderId[order._id].modePaiement || "N/A"}</span>
+                        </p>
+                      </div>
+                    )}
                     <p className="client-theme-value font-medium mt-2">{Number(order.montantTotal ?? 0).toLocaleString("fr-FR")} FCFA</p>
-                    <div className="mt-3">
-                      <button
-                        type="button"
-                        onClick={() => void handleBuyOrder(order)}
-                        disabled={!order._id || buyingOrderId === order._id}
-                        className="px-3 py-2 rounded-lg text-xs border client-theme-button disabled:opacity-60"
-                      >
-                        {buyingOrderId === order._id ? "Achat en cours..." : "Acheter"}
-                      </button>
-                    </div>
                   </article>
                 );
               })}

@@ -128,7 +128,15 @@ export const createAchat = async (req: AuthenticatedRequest, res: Response): Pro
 
         const achatExistant = await AchatModel.findOne({ commande: commandeId });
         if (achatExistant) {
-            res.status(409).json({ message: 'Un achat existe deja pour cette commande.' });
+            const achatExistantPopule = await AchatModel.findById(achatExistant._id)
+                .populate('voiture', 'marque modelCar year price image')
+                .populate('commande', 'statut montantTotal dateCommande');
+
+            res.status(200).json({
+                message: 'Un achat existe déjà pour cette commande.',
+                achat: achatExistantPopule,
+                success: true
+            });
             return;
         }
 

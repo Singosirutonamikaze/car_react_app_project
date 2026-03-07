@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Types } from 'mongoose';
 import CommandeModel from '../models/Commande';
+import { AchatModel } from '../models/Achat';
 import { IAdresseLivraison } from '../interfaces/ICommande';
 import UserModel from '../models/Client';
 import CarModel from '../models/Car';
@@ -119,7 +120,8 @@ export const addCommande = async (req: AuthenticatedRequest, res: Response): Pro
         const nouvelleCommande = new CommandeModel({
             client: clientId,
             voiture,
-            statut: statut || 'En attente',
+            // Le flux métier simplifié considère une commande comme un achat validé.
+            statut: statut || 'Confirmée',
             montant: Number.isFinite(montantNumber) ? montantNumber : 0,
             fraisLivraison: Number.isFinite(fraisLivraisonNumber) ? fraisLivraisonNumber : 0,
             modePaiement,
@@ -130,9 +132,25 @@ export const addCommande = async (req: AuthenticatedRequest, res: Response): Pro
 
         await nouvelleCommande.save();
 
+        const nouvelAchat = new AchatModel({
+            voiture,
+            commande: nouvelleCommande._id,
+            prixAchat: Number.isFinite(montantNumber) ? montantNumber : 0,
+            modePaiement,
+            notes,
+            statut: 'Confirmé'
+        });
+
+        await nouvelAchat.save();
+
         await UserModel.findByIdAndUpdate(
             clientId,
-            { $addToSet: { commandes: nouvelleCommande._id } },
+            {
+                $addToSet: {
+                    commandes: nouvelleCommande._id,
+                    achats: nouvelAchat._id
+                }
+            },
             { new: false }
         );
 
@@ -141,10 +159,15 @@ export const addCommande = async (req: AuthenticatedRequest, res: Response): Pro
             .populate('client', 'name surname email')
             .populate('voiture', 'marque modelCar year price image');
 
+        const achatPopule = await AchatModel.findById(nouvelAchat._id)
+            .populate('voiture', 'marque modelCar year price image')
+            .populate('commande', 'statut montantTotal dateCommande');
+
         res.status(201).json({
             success: true,
-            message: 'Commande créée avec succès',
-            data: commandePopulee
+            message: 'Commande et achat créés avec succès',
+            data: commandePopulee,
+            achat: achatPopule
         });
     } catch (error) {
         console.error('Erreur lors de la création de la commande:', error);
