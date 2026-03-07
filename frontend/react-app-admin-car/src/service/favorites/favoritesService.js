@@ -2,8 +2,26 @@ import axiosInstance from "../axiosInstance";
 import { API_PATHS } from "../../utils/apiPath";
 
 export const getUserFavorites = async () => {
-  const res = await axiosInstance.get(API_PATHS.FAVORITES.GET_ALL);
-  return res.data;
+  const endpointCandidates = [
+    API_PATHS.FAVORITES.GET_ALL,
+    API_PATHS.FAVORITES.GET_USER_COMPAT,
+  ];
+
+  let lastError;
+  for (const endpoint of endpointCandidates) {
+    try {
+      const res = await axiosInstance.get(endpoint);
+      return res.data;
+    } catch (error) {
+      if (error?.response?.status === 404) {
+        lastError = error;
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  throw lastError;
 };
 
 export const toggleFavorite = async (carId) => {
@@ -12,6 +30,24 @@ export const toggleFavorite = async (carId) => {
 };
 
 export const removeFavorite = async (favoriteId) => {
-  const res = await axiosInstance.delete(API_PATHS.FAVORITES.REMOVE(favoriteId));
-  return res.data;
+  const endpointCandidates = [
+    API_PATHS.FAVORITES.REMOVE(favoriteId),
+    API_PATHS.FAVORITES.REMOVE_USER_COMPAT(favoriteId),
+  ];
+
+  let lastError;
+  for (const endpoint of endpointCandidates) {
+    try {
+      const res = await axiosInstance.delete(endpoint);
+      return res.data;
+    } catch (error) {
+      if (error?.response?.status === 404) {
+        lastError = error;
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  throw lastError;
 };

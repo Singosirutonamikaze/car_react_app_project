@@ -2,16 +2,27 @@ import axiosInstance from "../axiosInstance";
 import { API_PATHS } from "../../utils/apiPath";
 
 export const getUserAchats = async () => {
-  try {
-    const res = await axiosInstance.get(API_PATHS.ACHATS.GET_USER);
-    return res.data;
-  } catch (error) {
-    if (error?.response?.status === 404) {
-      const fallback = await axiosInstance.get(API_PATHS.ACHATS.GET_ALL_FALLBACK);
-      return fallback.data;
+  const endpointCandidates = [
+    API_PATHS.ACHATS.GET_USER,
+    API_PATHS.ACHATS.GET_ALL_FALLBACK,
+    API_PATHS.ACHATS.GET_USER_COMPAT,
+  ];
+
+  let lastError;
+  for (const endpoint of endpointCandidates) {
+    try {
+      const res = await axiosInstance.get(endpoint);
+      return res.data;
+    } catch (error) {
+      if (error?.response?.status === 404) {
+        lastError = error;
+        continue;
+      }
+      throw error;
     }
-    throw error;
   }
+
+  throw lastError;
 };
 
 export const createAchat = async (data) => {

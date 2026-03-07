@@ -52,6 +52,7 @@ const API_PATHS = {
   ACHATS: {
     GET_USER: `/api/version/achat/admin/achats`,
     GET_ALL_FALLBACK: `/api/version/achat/admin/getAll`,
+    GET_USER_COMPAT: `/api/version/achat/user/achats`,
     CHARTS: `/api/version/achat/admin/achats/charts`,
     CREATE: `/api/version/achat/user/achats`,
     UPDATE_STATUS: (achatId) => `/api/version/achat/admin/achats/${achatId}/status`,
@@ -67,8 +68,10 @@ const API_PATHS = {
   },
   FAVORITES: {
     GET_ALL: `/api/version/favorites/admin/favorites`,
+    GET_USER_COMPAT: `/api/version/favorites/user/favorites`,
     TOGGLE: `/api/version/favorites/user/favorites/toggle-clean`,
     REMOVE: (favoriteId) => `/api/version/favorites/admin/favorites/${favoriteId}`,
+    REMOVE_USER_COMPAT: (favoriteId) => `/api/version/favorites/user/favorites/${favoriteId}`,
   },
   UPLOADS: {
     GET_IMAGE: (filename) => `/uploads/${filename}`,
