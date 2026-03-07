@@ -27,7 +27,7 @@ export const getUserAchats = async (req: AuthenticatedRequest, res: Response): P
             populate: [
                 {
                     path: 'voiture',
-                    select: 'marque modele annee prix images'
+                    select: 'marque modelCar year price image'
                 },
                 {
                     path: 'commande',
@@ -118,11 +118,17 @@ export const createAchat = async (req: AuthenticatedRequest, res: Response): Pro
         const commande = await CommandeModel.findOne({
             _id: commandeId,
             client: userId,
-            statut: { $in: ['Confirmée', 'En cours'] }
+            statut: { $in: ['En attente', 'Confirmée', 'En cours'] }
         });
 
         if (!commande) {
             res.status(404).json({ message: 'Commande non trouvée ou non valide.' });
+            return;
+        }
+
+        const achatExistant = await AchatModel.findOne({ commande: commandeId });
+        if (achatExistant) {
+            res.status(409).json({ message: 'Un achat existe deja pour cette commande.' });
             return;
         }
 
@@ -153,7 +159,7 @@ export const createAchat = async (req: AuthenticatedRequest, res: Response): Pro
 
         // Populer la réponse
         const populatedAchat = await AchatModel.findById(savedAchat._id)
-            .populate('voiture', 'marque modele annee prix images')
+            .populate('voiture', 'marque modelCar year price image')
             .populate('commande', 'statut montantTotal dateCommande');
 
         res.status(201).json({

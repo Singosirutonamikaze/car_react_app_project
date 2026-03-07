@@ -19,8 +19,19 @@ function getStatusStats(commands) {
 function getTotalRevenue(commands) {
   if (!Array.isArray(commands)) return 0;
 
+  const toNumber = (value) => {
+    if (typeof value === "number") {
+      return Number.isFinite(value) ? value : 0;
+    }
+    if (typeof value === "string") {
+      const parsed = Number(value.replaceAll(/[\s,]/g, ""));
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+    return 0;
+  };
+
   return commands.reduce((total, command) => {
-    return total + (command?.montantTotal || command?.montant || 0);
+    return total + toNumber(command?.montantTotal ?? command?.montant);
   }, 0);
 }
 
@@ -34,19 +45,23 @@ function formatCurrency(amount) {
   );
 }
 
-function CommandsList({
-  commands = [],
-  onEditCommand,
-  onDeleteCommand,
-  onRefresh,
-  onDownload,
-}) {
+function CommandsList(props) {
+  const commands = Array.isArray(props.commands) ? props.commands : [];
+  const onEditCommand = props.onEditCommand;
+  const onDeleteCommand = props.onDeleteCommand;
+  const onRefresh = props.onRefresh;
+  const onDownload = props.onDownload;
+
   const handleRefresh = () => {
-    onRefresh?.();
+    if (typeof onRefresh === "function") {
+      onRefresh();
+    }
   };
 
   const handleDownload = () => {
-    onDownload?.();
+    if (typeof onDownload === "function") {
+      onDownload();
+    }
   };
 
   const isValidArray = Array.isArray(commands);
@@ -78,16 +93,24 @@ function CommandsList({
             <CommandInfoCard
               key={command._id || command.id || `command-${index}`}
               command={command}
-              onEdit={() => onEditCommand?.(command)}
-              onDelete={() => onDeleteCommand?.(command)}
+              onEdit={() => {
+                if (typeof onEditCommand === "function") {
+                  onEditCommand(command);
+                }
+              }}
+              onDelete={() => {
+                if (typeof onDeleteCommand === "function") {
+                  onDeleteCommand(command);
+                }
+              }}
             />
           ))}
         </div>
 
         {commandsCount > 20 && (
-          <div className="flex justify-center mt-6">
-            <div className="bg-slate-100/5 rounded-lg px-4 py-2 border border-slate-100/10">
-              <span className="text-slate-300 text-sm">
+          <div className="mt-6 flex justify-center">
+            <div className="rounded-lg border border-slate-100/10 bg-slate-100/5 px-4 py-2">
+              <span className="text-sm text-slate-300">
                 Affichage de {commandsCount} commandes
               </span>
             </div>
@@ -99,22 +122,22 @@ function CommandsList({
 
   return (
     <div className="card rounded-xl">
-      <div className="flex flex-col gap-4 p-4 border-b border-slate-100/10 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+      <div className="flex flex-col gap-4 border-b border-slate-100/10 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
         <div>
           <h4 className="text-lg font-semibold text-slate-100 sm:text-xl">
             Liste des Commandes ({commandsCount})
           </h4>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="mt-1 text-sm text-slate-400">
             Gestion de toutes les commandes
           </p>
 
           {commandsCount > 0 && (
             <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-4">
-              <span className="text-emerald-400 text-sm font-medium">
+              <span className="text-sm font-medium text-emerald-400">
                 Total: {formatCurrency(totalRevenue)}
               </span>
               {Object.entries(statusStats).map(([status, count]) => (
-                <span key={status} className="text-slate-300 text-xs">
+                <span key={status} className="text-xs text-slate-300">
                   {status}: {count}
                 </span>
               ))}
@@ -125,17 +148,17 @@ function CommandsList({
         <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3">
           <button
             onClick={handleRefresh}
-            className="flex items-center justify-center gap-2 px-3 py-2 text-cyan-200 hover:text-cyan-100 hover:bg-cyan-500/15 rounded-lg transition-colors border border-cyan-300/25 sm:px-4"
+            className="flex items-center justify-center gap-2 rounded-lg border border-cyan-300/25 px-3 py-2 text-cyan-200 transition-colors hover:bg-cyan-500/15 hover:text-cyan-100 sm:px-4"
           >
             <LuRefreshCw className="text-base" />
-            <span className="font-medium text-sm sm:text-base">Actualiser</span>
+            <span className="text-sm font-medium sm:text-base">Actualiser</span>
           </button>
           <button
             onClick={handleDownload}
-            className="flex items-center justify-center gap-2 px-3 py-2 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 rounded-lg transition-colors border border-emerald-500/20 sm:px-4"
+            className="flex items-center justify-center gap-2 rounded-lg border border-emerald-500/20 px-3 py-2 text-emerald-400 transition-colors hover:bg-emerald-500/10 hover:text-emerald-300 sm:px-4"
           >
             <LuDownload className="text-base" />
-            <span className="font-medium text-sm sm:text-base">
+            <span className="text-sm font-medium sm:text-base">
               Télécharger
             </span>
           </button>

@@ -8,13 +8,19 @@ import type { CommandeInfo } from "../../../types/dashboard";
 interface CommandeRow {
   _id?: string;
   statut?: string;
+  montant?: number;
   montantTotal?: number;
+  modePaiement?: string;
   dateCommande?: string | Date;
   voiture?:
   | {
+    _id?: string;
     marque?: string;
     model?: string;
     modele?: string;
+    modelCar?: string;
+    image?: string;
+    images?: string[];
   }
   | string;
 }

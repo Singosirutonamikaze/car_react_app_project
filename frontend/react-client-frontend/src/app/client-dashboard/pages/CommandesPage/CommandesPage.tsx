@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FiPackage } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useSearchParams } from "react-router-dom";
@@ -11,22 +11,7 @@ import { carService } from "../../../../shared/services/car";
 import { orderService } from "../../../../shared/services/order";
 import uploadService from "../../../../shared/services/upload";
 import type { Car } from "../../../../shared/types/car";
-
-function formatDate(value?: string): string {
-  if (!value) {
-    return "N/A";
-  }
-
-  try {
-    return new Date(value).toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  } catch {
-    return "Date invalide";
-  }
-}
+import { API_CONFIG, API_PATHS } from "../../../../shared/utils/constants";
 
 interface CommandeFormState {
   carId: string;
@@ -36,6 +21,15 @@ interface CommandeFormState {
   codePostal: string;
   pays: string;
   notes: string;
+}
+
+interface OrderCar {
+  marque?: string;
+  modele?: string;
+  model?: string;
+  modelCar?: string;
+  image?: string;
+  images?: string[];
 }
 
 const initialCommandeForm: CommandeFormState = {
@@ -48,6 +42,64 @@ const initialCommandeForm: CommandeFormState = {
   notes: "",
 };
 
+function formatDate(value?: string): string {
+  if (!value) return "N/A";
+  try {
+    return new Date(value).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } catch {
+    return "Date invalide";
+  }
+}
+
+function normalizeStatus(value?: string): string {
+  return (value || "")
+    .normalize("NFD")
+    .replaceAll(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function getStatusClassName(status?: string): string {
+  const normalized = normalizeStatus(status);
+  if (normalized === "en attente") return "bg-amber-500/20 text-amber-200 border-amber-400/40";
+  if (normalized === "confirmee" || normalized === "en cours") return "bg-blue-500/20 text-blue-200 border-blue-400/40";
+  if (normalized === "livree") return "bg-emerald-500/20 text-emerald-200 border-emerald-400/40";
+  if (normalized === "annulee") return "bg-rose-500/20 text-rose-200 border-rose-400/40";
+  return "bg-slate-500/20 text-slate-200 border-slate-400/40";
+}
+
+function getOrderCar(order: { voiture?: unknown }): OrderCar | null {
+  if (!order.voiture || typeof order.voiture !== "object") return null;
+  return order.voiture as OrderCar;
+}
+
+function getOrderImage(orderCar: OrderCar | null): string {
+  if (!orderCar) return "";
+  if (Array.isArray(orderCar.images) && orderCar.images[0]) return orderCar.images[0];
+  if (typeof orderCar.image === "string" && orderCar.image.trim()) return orderCar.image;
+  return "";
+}
+
+function getOrderCarId(order: { voiture?: unknown }): string {
+  if (!order.voiture) return "";
+  if (typeof order.voiture === "string") return order.voiture;
+
+  const car = order.voiture as { _id?: string };
+  return car._id || "";
+}
+
+function normalizeModePaiement(modePaiement?: string): "Espèces" | "Virement" | "Chèque" | "Financement" {
+  if (modePaiement === "Virement" || modePaiement === "Chèque" || modePaiement === "Financement") {
+    return modePaiement;
+  }
+
+  return "Espèces";
+}
+
 function CommandesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { displayName, isAuthenticated, isLoading, error, orders, refreshOrders } = useCommandesData();
@@ -55,19 +107,15 @@ function CommandesPage() {
   const [cars, setCars] = useState<Car[]>([]);
   const [carsLoading, setCarsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [buyingOrderId, setBuyingOrderId] = useState<string | null>(null);
   const [formState, setFormState] = useState<CommandeFormState>(initialCommandeForm);
 
   const itemsPerPage = 6;
   const totalPages = Math.max(1, Math.ceil(orders.length / itemsPerPage));
-  const paginatedOrders = useMemo(
-    () => orders.slice((page - 1) * itemsPerPage, page * itemsPerPage),
-    [orders, page],
-  );
+  const paginatedOrders = useMemo(() => orders.slice((page - 1) * itemsPerPage, page * itemsPerPage), [orders, page]);
 
   useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages);
-    }
+    if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
   useEffect(() => {
@@ -82,34 +130,21 @@ function CommandesPage() {
         setCarsLoading(false);
       }
     };
-
     loadCars();
   }, []);
 
   useEffect(() => {
     const requestedCarId = searchParams.get("carId") ?? "";
     const requestedAction = searchParams.get("action") ?? "";
-
-    if (requestedAction !== "commander" || !requestedCarId) {
-      return;
-    }
+    if (requestedAction !== "commander" || !requestedCarId) return;
 
     setFormState((prev) => ({ ...prev, carId: requestedCarId }));
     setSearchParams({}, { replace: true });
   }, [searchParams, setSearchParams]);
 
-  const selectedCar = useMemo(
-    () => cars.find((car) => car._id === formState.carId),
-    [cars, formState.carId],
-  );
+  const selectedCar = useMemo(() => cars.find((car) => car._id === formState.carId), [cars, formState.carId]);
 
-  const handleFormChange = (field: keyof CommandeFormState, value: string) => {
-    setFormState((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleCreateOrder = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
+  const submitCreateOrder = async () => {
     if (!formState.carId) {
       toast.error("Selectionnez une voiture avant de commander");
       return;
@@ -121,17 +156,14 @@ function CommandesPage() {
     }
 
     setIsSubmitting(true);
-
     try {
-      const fraisLivraison = 0;
       const montant = Number(selectedCar.price ?? 0);
-
       await orderService.createOrder({
         voiture: formState.carId,
         statut: "En attente",
         montant,
-        fraisLivraison,
-        montantTotal: montant + fraisLivraison,
+        fraisLivraison: 0,
+        montantTotal: montant,
         modePaiement: formState.modePaiement,
         adresseLivraison: {
           rue: formState.rue,
@@ -142,7 +174,6 @@ function CommandesPage() {
         dateCommande: new Date(),
         notes: formState.notes || undefined,
       });
-
       toast.success("Commande creee avec succes");
       setFormState(initialCommandeForm);
       setPage(1);
@@ -155,163 +186,120 @@ function CommandesPage() {
     }
   };
 
+  const handleCreateOrder = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    void submitCreateOrder();
+  };
+
+  const handleBuyOrder = async (order: {
+    _id?: string;
+    voiture?: unknown;
+    montant?: number;
+    montantTotal?: number;
+    modePaiement?: string;
+  }) => {
+    const commandeId = order._id;
+    const voitureId = getOrderCarId(order);
+    const prixAchat = Number(order.montantTotal ?? order.montant ?? 0);
+
+    if (!commandeId || !voitureId) {
+      toast.error("Commande invalide: achat impossible.");
+      return;
+    }
+
+    setBuyingOrderId(commandeId);
+
+    try {
+      const token = globalThis.localStorage.getItem("token");
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_PATHS.ACHATS.CREATE}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          voitureId,
+          commandeId,
+          prixAchat,
+          modePaiement: normalizeModePaiement(order.modePaiement),
+        }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result?.message || "Erreur lors de la creation de l'achat");
+      }
+
+      toast.success("Achat cree avec succes");
+      await refreshOrders();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erreur lors de la creation de l'achat";
+      toast.error(message);
+    } finally {
+      setBuyingOrderId(null);
+    }
+  };
+
   return (
     <AuthenticatedContent isLoading={isLoading} isAuthenticated={isAuthenticated}>
       <section className="space-y-6">
-        <PageHeader
-          title="Mes Commandes"
-          subtitle={`Bienvenue, ${displayName}`.trim()}
-          icon={FiPackage}
-          onRefresh={refreshOrders}
-        />
+        <PageHeader title="Mes Commandes" subtitle={`Bienvenue, ${displayName}`.trim()} icon={FiPackage} onRefresh={refreshOrders} />
 
-        {error && (
-          <div className="text-red-200 bg-red-900/30 border border-red-500/40 rounded-lg p-4">
-            {error}
-          </div>
-        )}
+        {error && <div className="text-red-200 bg-red-900/30 border border-red-500/40 rounded-lg p-4">{error}</div>}
 
         <article className="backdrop-blur-xl rounded-lg p-4 border client-theme-card-soft">
           <h2 className="text-base font-semibold client-theme-text-primary">Passer une commande</h2>
-          <p className="text-sm client-theme-text-secondary mt-1 mb-4">
-            Flux dashboard uniquement: vous pouvez commander ici sans passer par la page d'accueil.
-          </p>
+          <p className="text-sm client-theme-text-secondary mt-1 mb-4">Flux dashboard uniquement: vous pouvez commander ici sans passer par la page d'accueil.</p>
 
           <form onSubmit={handleCreateOrder} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm client-theme-text-secondary mb-1" htmlFor="commande-car-id">
-                  Voiture
-                </label>
-                <select
-                  id="commande-car-id"
-                  value={formState.carId}
-                  onChange={(event) => handleFormChange("carId", event.target.value)}
-                  className="w-full rounded-lg border px-3 py-2 text-sm client-theme-input"
-                  disabled={carsLoading || isSubmitting}
-                  required
-                >
-                  <option value="">Selectionner une voiture</option>
-                  {cars.map((car) => (
-                    <option key={car._id} value={car._id}>
-                      {car.marque} {car.modelCar} - {Number(car.price ?? 0).toLocaleString("fr-FR")} FCFA
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <select
+                title="Selectionner la voiture"
+                aria-label="Selectionner la voiture"
+                value={formState.carId}
+                onChange={(event) => setFormState((prev) => ({ ...prev, carId: event.target.value }))}
+                className="w-full rounded-lg border px-3 py-2 text-sm client-theme-input"
+                disabled={carsLoading || isSubmitting}
+                required
+              >
+                <option value="">Selectionner une voiture</option>
+                {cars.map((car) => (
+                  <option key={car._id} value={car._id}>
+                    {car.marque} {car.modelCar} - {Number(car.price ?? 0).toLocaleString("fr-FR")} FCFA
+                  </option>
+                ))}
+              </select>
 
-              <div>
-                <label className="block text-sm client-theme-text-secondary mb-1" htmlFor="commande-mode-paiement">
-                  Mode de paiement
-                </label>
-                <select
-                  id="commande-mode-paiement"
-                  value={formState.modePaiement}
-                  onChange={(event) =>
-                    handleFormChange("modePaiement", event.target.value as CommandeFormState["modePaiement"])
-                  }
-                  className="w-full rounded-lg border px-3 py-2 text-sm client-theme-input"
-                  disabled={isSubmitting}
-                >
-                  <option value="Espèces">Espèces</option>
-                  <option value="Virement">Virement</option>
-                  <option value="Chèque">Chèque</option>
-                  <option value="Financement">Financement</option>
-                </select>
-              </div>
+              <select
+                title="Choisir le mode de paiement"
+                aria-label="Choisir le mode de paiement"
+                value={formState.modePaiement}
+                onChange={(event) => setFormState((prev) => ({ ...prev, modePaiement: event.target.value as CommandeFormState["modePaiement"] }))}
+                className="w-full rounded-lg border px-3 py-2 text-sm client-theme-input"
+                disabled={isSubmitting}
+              >
+                <option value="Espèces">Espèces</option>
+                <option value="Virement">Virement</option>
+                <option value="Chèque">Chèque</option>
+                <option value="Financement">Financement</option>
+              </select>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm client-theme-text-secondary mb-1" htmlFor="commande-rue">
-                  Rue
-                </label>
-                <input
-                  id="commande-rue"
-                  type="text"
-                  value={formState.rue}
-                  onChange={(event) => handleFormChange("rue", event.target.value)}
-                  className="w-full rounded-lg border px-3 py-2 text-sm client-theme-input"
-                  placeholder="Avenue de la Liberation"
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm client-theme-text-secondary mb-1" htmlFor="commande-ville">
-                  Ville
-                </label>
-                <input
-                  id="commande-ville"
-                  type="text"
-                  value={formState.ville}
-                  onChange={(event) => handleFormChange("ville", event.target.value)}
-                  className="w-full rounded-lg border px-3 py-2 text-sm client-theme-input"
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
+              <input className="w-full rounded-lg border px-3 py-2 text-sm client-theme-input" placeholder="Rue" value={formState.rue} onChange={(event) => setFormState((prev) => ({ ...prev, rue: event.target.value }))} required />
+              <input className="w-full rounded-lg border px-3 py-2 text-sm client-theme-input" placeholder="Ville" value={formState.ville} onChange={(event) => setFormState((prev) => ({ ...prev, ville: event.target.value }))} required />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm client-theme-text-secondary mb-1" htmlFor="commande-code-postal">
-                  Code postal
-                </label>
-                <input
-                  id="commande-code-postal"
-                  type="text"
-                  value={formState.codePostal}
-                  onChange={(event) => handleFormChange("codePostal", event.target.value)}
-                  className="w-full rounded-lg border px-3 py-2 text-sm client-theme-input"
-                  pattern="[0-9]{5}"
-                  maxLength={5}
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm client-theme-text-secondary mb-1" htmlFor="commande-pays">
-                  Pays
-                </label>
-                <input
-                  id="commande-pays"
-                  type="text"
-                  value={formState.pays}
-                  onChange={(event) => handleFormChange("pays", event.target.value)}
-                  className="w-full rounded-lg border px-3 py-2 text-sm client-theme-input"
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
+              <input className="w-full rounded-lg border px-3 py-2 text-sm client-theme-input" placeholder="Code postal" value={formState.codePostal} onChange={(event) => setFormState((prev) => ({ ...prev, codePostal: event.target.value }))} pattern="[0-9]{5}" maxLength={5} required />
+              <input className="w-full rounded-lg border px-3 py-2 text-sm client-theme-input md:col-span-2" placeholder="Pays" value={formState.pays} onChange={(event) => setFormState((prev) => ({ ...prev, pays: event.target.value }))} required />
             </div>
 
-            <div>
-              <label className="block text-sm client-theme-text-secondary mb-1" htmlFor="commande-notes">
-                Notes (optionnel)
-              </label>
-              <textarea
-                id="commande-notes"
-                value={formState.notes}
-                onChange={(event) => handleFormChange("notes", event.target.value)}
-                className="w-full rounded-lg border px-3 py-2 text-sm client-theme-input"
-                rows={3}
-                placeholder="Informations complementaires pour la livraison"
-                disabled={isSubmitting}
-              />
-            </div>
+            <textarea className="w-full rounded-lg border px-3 py-2 text-sm client-theme-input" rows={3} placeholder="Informations complementaires" value={formState.notes} onChange={(event) => setFormState((prev) => ({ ...prev, notes: event.target.value }))} />
 
             <div className="flex items-center justify-between gap-3">
-              <p className="text-sm client-theme-text-secondary">
-                Montant: <span className="client-theme-value font-semibold">{Number(selectedCar?.price ?? 0).toLocaleString("fr-FR")} FCFA</span>
-              </p>
-              <button
-                type="submit"
-                className="px-4 py-2 rounded-lg text-sm border client-theme-button disabled:opacity-60"
-                disabled={isSubmitting || carsLoading}
-              >
+              <p className="text-sm client-theme-text-secondary">Montant: <span className="client-theme-value font-semibold">{Number(selectedCar?.price ?? 0).toLocaleString("fr-FR")} FCFA</span></p>
+              <button type="submit" className="px-4 py-2 rounded-lg text-sm border client-theme-button disabled:opacity-60" disabled={isSubmitting || carsLoading}>
                 {isSubmitting ? "Commande en cours..." : "Commander"}
               </button>
             </div>
@@ -319,45 +307,44 @@ function CommandesPage() {
         </article>
 
         {orders.length === 0 ? (
-          <EmptyState
-            title="Aucune commande disponible"
-            message="Vos commandes apparaitront ici des que vous en passerez une nouvelle."
-          />
+          <EmptyState title="Aucune commande disponible" message="Vos commandes apparaitront ici des que vous en passerez une nouvelle." />
         ) : (
           <>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {paginatedOrders.map((order) => {
-                const carInfo =
-                  order.voiture && typeof order.voiture === "object"
-                    ? `${order.voiture.marque ?? "Voiture"} ${order.voiture.modele ?? order.voiture.model ?? ""}`
-                    : "Voiture";
+                const orderCar = getOrderCar(order);
+                const imageValue = getOrderImage(orderCar);
+                const carInfo = orderCar
+                  ? `${orderCar.marque ?? "Voiture"} ${orderCar.modele ?? orderCar.modelCar ?? orderCar.model ?? ""}`
+                  : "Voiture";
 
                 return (
-                  <article
-                    key={order._id ?? `${order.dateCommande}-${order.montantTotal}`}
-                    className="backdrop-blur-xl rounded-lg p-4 border client-theme-card-soft"
-                  >
+                  <article key={order._id ?? `${order.dateCommande}-${order.montantTotal}`} className="backdrop-blur-xl rounded-lg p-4 border client-theme-card-soft">
                     <div className="rounded-lg overflow-hidden h-36 mb-3 client-theme-card">
-                      {order.voiture && typeof order.voiture === "object" && "images" in order.voiture && Array.isArray(order.voiture.images) && order.voiture.images[0] ? (
-                        <img
-                          src={uploadService.resolveImageUrl(order.voiture.images[0])}
-                          alt={carInfo.trim()}
-                          className="w-full h-full object-cover"
-                        />
+                      {imageValue ? (
+                        <img src={uploadService.resolveImageUrl(imageValue)} alt={carInfo.trim()} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center client-theme-text-secondary text-xs">
-                          Image indisponible
-                        </div>
+                        <div className="w-full h-full flex items-center justify-center client-theme-text-secondary text-xs">Image indisponible</div>
                       )}
                     </div>
                     <h2 className="text-base font-semibold client-theme-text-primary">{carInfo.trim()}</h2>
-                    <p className="client-theme-text-secondary text-sm mt-1">
-                      Commande du {formatDate(order.dateCommande ? String(order.dateCommande) : undefined)}
-                    </p>
-                    <p className="client-theme-text-secondary mt-2 text-sm">Statut: {order.statut}</p>
-                    <p className="client-theme-value font-medium mt-2">
-                      {Number(order.montantTotal ?? 0).toLocaleString("fr-FR")} FCFA
-                    </p>
+                    <p className="client-theme-text-secondary text-sm mt-1">Commande du {formatDate(order.dateCommande ? String(order.dateCommande) : undefined)}</p>
+                    <div className="mt-2">
+                      <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${getStatusClassName(order.statut)}`}>
+                        {order.statut || "Inconnu"}
+                      </span>
+                    </div>
+                    <p className="client-theme-value font-medium mt-2">{Number(order.montantTotal ?? 0).toLocaleString("fr-FR")} FCFA</p>
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={() => void handleBuyOrder(order)}
+                        disabled={!order._id || buyingOrderId === order._id}
+                        className="px-3 py-2 rounded-lg text-xs border client-theme-button disabled:opacity-60"
+                      >
+                        {buyingOrderId === order._id ? "Achat en cours..." : "Acheter"}
+                      </button>
+                    </div>
                   </article>
                 );
               })}
@@ -365,23 +352,9 @@ function CommandesPage() {
 
             {totalPages > 1 && (
               <div className="flex items-center justify-between rounded-lg border client-theme-card-soft p-3">
-                <button
-                  onClick={() => setPage((current) => Math.max(1, current - 1))}
-                  disabled={page === 1}
-                  className="px-3 py-2 rounded-lg text-xs border disabled:opacity-40 client-theme-outline-button"
-                >
-                  Precedent
-                </button>
-                <p className="text-xs client-theme-text-secondary">
-                  Page {page} / {totalPages}
-                </p>
-                <button
-                  onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-                  disabled={page === totalPages}
-                  className="px-3 py-2 rounded-lg text-xs border disabled:opacity-40 client-theme-outline-button"
-                >
-                  Suivant
-                </button>
+                <button onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page === 1} className="px-3 py-2 rounded-lg text-xs border disabled:opacity-40 client-theme-outline-button">Precedent</button>
+                <p className="text-xs client-theme-text-secondary">Page {page} / {totalPages}</p>
+                <button onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={page === totalPages} className="px-3 py-2 rounded-lg text-xs border disabled:opacity-40 client-theme-outline-button">Suivant</button>
               </div>
             )}
           </>

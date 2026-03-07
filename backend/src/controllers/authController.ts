@@ -220,7 +220,7 @@ export const getUserDataEnhanced = async (req: AuthenticatedRequest, res: Respon
                     path: 'commandes',
                     populate: {
                         path: 'voiture',
-                        select: 'marque modele annee prix images'
+                        select: 'marque modelCar year price image'
                     },
                     options: { sort: { dateCommande: -1 } }
                 },
@@ -228,7 +228,7 @@ export const getUserDataEnhanced = async (req: AuthenticatedRequest, res: Respon
                     path: 'favorites',
                     populate: {
                         path: 'voiture',
-                        select: 'marque modele annee prix images disponible'
+                        select: 'marque modelCar year price image disponible'
                     }
                 }
             ]);

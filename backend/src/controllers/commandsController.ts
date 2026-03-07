@@ -16,9 +16,10 @@ interface PopulatedClient {
 interface PopulatedVoiture {
     _id: Types.ObjectId;
     marque: string;
-    model: string;
+    modelCar: string;
     year: number;
     price: number;
+    image?: string;
 }
 
 // Interface pour les documents populés
@@ -42,9 +43,15 @@ interface PopulatedCommande {
 
 export const getAllCommande = async (req: Request, res: Response): Promise<void> => {
     try {
-        const commandes = await CommandeModel.find()
+        const authReq = req as AuthenticatedRequest;
+        let query: Record<string, unknown> = {};
+        if (!authReq.admin && authReq.user?.id) {
+            query = { client: authReq.user.id };
+        }
+
+        const commandes = await CommandeModel.find(query)
             .populate('client', 'name surname email')
-            .populate('voiture', 'marque model year price') as unknown as PopulatedCommande[];
+            .populate('voiture', 'marque modelCar year price image') as unknown as PopulatedCommande[];
 
         res.status(200).json({
             success: true,
@@ -106,12 +113,15 @@ export const addCommande = async (req: AuthenticatedRequest, res: Response): Pro
             return;
         }
 
+        const montantNumber = Number(String(montant).replaceAll(/[\s,]/g, ''));
+        const fraisLivraisonNumber = Number(String(fraisLivraison ?? 0).replaceAll(/[\s,]/g, ''));
+
         const nouvelleCommande = new CommandeModel({
             client: clientId,
             voiture,
             statut: statut || 'En attente',
-            montant,
-            fraisLivraison: fraisLivraison || 0,
+            montant: Number.isFinite(montantNumber) ? montantNumber : 0,
+            fraisLivraison: Number.isFinite(fraisLivraisonNumber) ? fraisLivraisonNumber : 0,
             modePaiement,
             adresseLivraison,
             dateLivraisonPrevue,
@@ -120,10 +130,16 @@ export const addCommande = async (req: AuthenticatedRequest, res: Response): Pro
 
         await nouvelleCommande.save();
 
+        await UserModel.findByIdAndUpdate(
+            clientId,
+            { $addToSet: { commandes: nouvelleCommande._id } },
+            { new: false }
+        );
+
         // Populer les références pour la réponse
         const commandePopulee = await CommandeModel.findById(nouvelleCommande._id)
             .populate('client', 'name surname email')
-            .populate('voiture', 'marque model year price');
+            .populate('voiture', 'marque modelCar year price image');
 
         res.status(201).json({
             success: true,
@@ -162,7 +178,7 @@ export const updateCommande = async (req: Request, res: Response): Promise<void>
             updates,
             { new: true, runValidators: true }
         ).populate('client', 'name surname email')
-            .populate('voiture', 'marque model year price');
+            .populate('voiture', 'marque modelCar year price image');
 
         if (!commande) {
             res.status(404).json({
@@ -225,7 +241,7 @@ export const downloadsCommande = async (req: Request, res: Response): Promise<vo
     try {
         const commandes = await CommandeModel.find()
             .populate('client', 'name surname email')
-            .populate('voiture', 'marque model year price');
+            .populate('voiture', 'marque modelCar year price image');
 
         // Formater les données pour l'export
         const dataForExport = commandes.map(commande => {
@@ -241,9 +257,9 @@ export const downloadsCommande = async (req: Request, res: Response): Promise<vo
 
             let voitureInfo = '';
             let voiturePrice: string | number = '';
-            if (commande.voiture && typeof commande.voiture === 'object' && 'marque' in commande.voiture && 'model' in commande.voiture && 'year' in commande.voiture && 'price' in commande.voiture) {
-                const v = commande.voiture as { marque: string; model: string; year: number; price: number };
-                voitureInfo = `${v.marque} ${v.model} (${v.year})`;
+            if (commande.voiture && typeof commande.voiture === 'object' && 'marque' in commande.voiture && 'modelCar' in commande.voiture && 'year' in commande.voiture && 'price' in commande.voiture) {
+                const v = commande.voiture as { marque: string; modelCar: string; year: number; price: number };
+                voitureInfo = `${v.marque} ${v.modelCar} (${v.year})`;
                 voiturePrice = v.price;
             } else {
                 voitureInfo = commande.voiture?.toString() || '';

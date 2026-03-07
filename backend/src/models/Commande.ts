@@ -89,6 +89,20 @@ const commandeSchema = new mongoose.Schema({
   timestamps: true
 });
 
+function toAmount(value: unknown): number {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.replaceAll(/[\s,]/g, '');
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  return 0;
+}
+
 // Index pour les recherches
 commandeSchema.index({ client: 1 });
 commandeSchema.index({ statut: 1 });
@@ -97,7 +111,12 @@ commandeSchema.index({ dateCommande: -1 });
 // Middleware pour calculer le montant total avant sauvegarde
 commandeSchema.pre('save', function(next) {
   if (this.isModified('montant') || this.isModified('fraisLivraison')) {
-    this.montantTotal = this.montant + (this.fraisLivraison || 0);
+    const montant = toAmount(this.montant);
+    const fraisLivraison = toAmount(this.fraisLivraison);
+
+    this.montant = montant;
+    this.fraisLivraison = fraisLivraison;
+    this.montantTotal = montant + fraisLivraison;
   }
   next();
 });
@@ -107,7 +126,15 @@ commandeSchema.pre('findOneAndUpdate', function(next) {
   const update = this.getUpdate() as any;
   if (update && (update.montant !== undefined || update.fraisLivraison !== undefined)) {
     if (!update.$set) update.$set = {};
-    update.$set.montantTotal = (update.montant || this.get('montant')) + (update.fraisLivraison || this.get('fraisLivraison') || 0);
+
+    const nextMontant = update.montant ?? update.$set.montant ?? this.get('montant');
+    const nextFraisLivraison = update.fraisLivraison ?? update.$set.fraisLivraison ?? this.get('fraisLivraison') ?? 0;
+    const montant = toAmount(nextMontant);
+    const fraisLivraison = toAmount(nextFraisLivraison);
+
+    update.$set.montant = montant;
+    update.$set.fraisLivraison = fraisLivraison;
+    update.$set.montantTotal = montant + fraisLivraison;
   }
   next();
 });
