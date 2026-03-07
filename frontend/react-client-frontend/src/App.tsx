@@ -8,6 +8,7 @@ import { ToastContainer } from 'react-toastify';
 import CommandesPage from './app/client-dashboard/pages/CommandesPage';
 import PanierPage from './app/client-dashboard/pages/PanierPage';
 import FavorisPage from './app/client-dashboard/pages/FavorisPage';
+import LocationsPage from './app/client-dashboard/pages/LocationsPage';
 import DashboardPage from './app/client-dashboard/pages/DashboardPage';
 import ProfilPage from './app/client-dashboard/pages/ProfilPage';
 import ParametresPage from './app/client-dashboard/pages/ParametresPage';
@@ -38,6 +39,7 @@ function App() {
           <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
           <Route path={ROUTES.FAVORITES} element={<FavorisPage />} />
           <Route path={ROUTES.CART} element={<PanierPage />} />
+          <Route path={ROUTES.LOCATIONS} element={<LocationsPage />} />
           <Route path={ROUTES.ORDERS} element={<CommandesPage />} />
           <Route path={ROUTES.PROFILE} element={<ProfilPage />} />
           <Route path={ROUTES.PARAMETRES} element={<ParametresPage />} />

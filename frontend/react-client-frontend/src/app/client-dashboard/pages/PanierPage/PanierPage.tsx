@@ -77,8 +77,11 @@ function PanierPage() {
     navigate(`${ROUTES.ORDERS}?action=commander&carId=${encodeURIComponent(carId)}`);
   };
 
-  const handleLouer = (carName: string) => {
-    toast.info(`Location a venir pour ${carName}. Contactez le support pour finaliser.`);
+  const handleLouer = (carId?: string) => {
+    if (!carId) {
+      return;
+    }
+    navigate(`${ROUTES.LOCATIONS}?action=louer&carId=${encodeURIComponent(carId)}`);
   };
 
   const handleAddFavorite = async (carId?: string) => {
@@ -149,7 +152,7 @@ function PanierPage() {
                     Favori
                   </button>
                   <button
-                    onClick={() => handleLouer(carName)}
+                    onClick={() => handleLouer(car._id)}
                     className="px-3 py-2 rounded-lg text-xs border client-theme-outline-button"
                   >
                     Louer

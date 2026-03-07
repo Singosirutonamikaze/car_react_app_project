@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import LocationModel from '../models/Location';
 import CarModel from '../models/Car';
 import UserModel from '../models/Client';
+import { AuthenticatedRequest } from '../middleware/authMiddleware';
 
 // Récupérer toutes les locations (admin)
 export const getAllLocations = async (req: Request, res: Response): Promise<void> => {
@@ -52,9 +53,11 @@ export const getLocationById = async (req: Request, res: Response): Promise<void
 // Créer une nouvelle location
 export const createLocation = async (req: Request, res: Response): Promise<void> => {
   try {
+    const authReq = req as AuthenticatedRequest;
     const { client, voiture, dateDebut, dateFin, prixParJour, modePaiement, notes } = req.body;
+    const resolvedClientId = authReq.user?.id || client;
 
-    if (!client || !voiture || !dateDebut || !dateFin || !prixParJour || !modePaiement) {
+    if (!resolvedClientId || !voiture || !dateDebut || !dateFin || !prixParJour || !modePaiement) {
       res.status(400).json({
         success: false,
         message: 'Tous les champs obligatoires doivent être remplis'
@@ -85,7 +88,7 @@ export const createLocation = async (req: Request, res: Response): Promise<void>
     }
 
     // Vérifier que le client existe
-    const clientDoc = await UserModel.findById(client);
+    const clientDoc = await UserModel.findById(resolvedClientId);
     if (!clientDoc) {
       res.status(404).json({ success: false, message: 'Client non trouvé' });
       return;
@@ -96,7 +99,7 @@ export const createLocation = async (req: Request, res: Response): Promise<void>
     const montantTotal = duree * prixParJour;
 
     const nouvelleLocation = new LocationModel({
-      client,
+      client: resolvedClientId,
       voiture,
       dateDebut: debut,
       dateFin: fin,
@@ -111,7 +114,7 @@ export const createLocation = async (req: Request, res: Response): Promise<void>
     await nouvelleLocation.save();
 
     // Ajouter la location au client
-    await UserModel.findByIdAndUpdate(client, {
+    await UserModel.findByIdAndUpdate(resolvedClientId, {
       $push: { locations: nouvelleLocation._id }
     });
 

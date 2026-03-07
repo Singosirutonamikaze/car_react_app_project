@@ -9,6 +9,7 @@ const ROUTES = {
     DASHBOARD: "/client/dashboard",
     FAVORITES: "/client/favoris",
     CART: "/client/panier",
+    LOCATIONS: "/client/locations",
     PROFILE: "/client/profil",
     ORDERS: "/client/commandes",
     STATS: "/client/statistiques",

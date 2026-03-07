@@ -76,6 +76,10 @@ const API_PATHS = {
     UPDATE_STATUS: (id: string) => `/api/version/achat/user/achats/${id}/status`,
     ADD_EVALUATION: (id: string) => `/api/version/achat/user/achats/${id}/evaluation`,
   },
+  LOCATIONS: {
+    CREATE: `/api/version/locations/create`,
+    GET_BY_CLIENT: (clientId: string) => `/api/version/locations/client/${clientId}`,
+  },
   HEALTH: "/health",
   PING: "/ping",
 };
