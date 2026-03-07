@@ -6,12 +6,10 @@ import { LuReceiptText } from "react-icons/lu";
 
 const formatCurrency = (value) => {
   const amount = Number(value || 0);
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
+  return `${new Intl.NumberFormat("fr-FR", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(amount)} FCFA`;
 };
 
 const normalizeStatus = (value) =>
@@ -30,6 +28,43 @@ const STATUS_FILTER_MAP = {
   livre: "livre",
   termine: "termine",
 };
+
+const STATUS_OPTIONS = [
+  { value: "En attente", label: "En attente" },
+  { value: "Confirme", label: "Confirme" },
+  { value: "Paye", label: "Paye" },
+  { value: "Livre", label: "Livre" },
+  { value: "Termine", label: "Termine" },
+  { value: "Annule", label: "Annule" },
+];
+
+const getClientName = (achat) => {
+  const commandeClient = achat?.commande?.client;
+  const combinedName =
+    `${commandeClient?.name || ""} ${commandeClient?.surname || ""}`.trim();
+  return (
+    achat?.client?.nom ||
+    achat?.client?.name ||
+    combinedName ||
+    achat?.nomClient ||
+    "-"
+  );
+};
+
+const getCarName = (achat) => {
+  if (
+    achat?.voiture?.marque &&
+    (achat?.voiture?.modele || achat?.voiture?.modelCar)
+  ) {
+    return `${achat.voiture.marque} ${achat.voiture.modele || achat.voiture.modelCar}`;
+  }
+  return (
+    achat?.car?.name || achat?.voiture?.name || achat?.modeleVoiture || "-"
+  );
+};
+
+const getAmount = (achat) =>
+  achat?.prixAchat || achat?.montant || achat?.prixTotal || 0;
 
 const formatDate = (value) => {
   if (!value) {
@@ -89,21 +124,8 @@ function AchatsPage() {
         <div className="grid grid-cols-1 gap-4 md:hidden">
           {filtered.map((achat) => {
             const id = achat?._id || achat?.id;
-            const commandeClient = achat?.commande?.client;
-            const clientName =
-              achat?.client?.nom ||
-              achat?.client?.name ||
-              `${commandeClient?.name || ""} ${commandeClient?.surname || ""}`.trim() ||
-              achat?.nomClient ||
-              "-";
-            const carName =
-              achat?.voiture?.marque &&
-              (achat?.voiture?.modele || achat?.voiture?.modelCar)
-                ? `${achat.voiture.marque} ${achat.voiture.modele || achat.voiture.modelCar}`
-                : achat?.car?.name ||
-                  achat?.voiture?.name ||
-                  achat?.modeleVoiture ||
-                  "-";
+            const clientName = getClientName(achat);
+            const carName = getCarName(achat);
 
             return (
               <article
@@ -118,9 +140,7 @@ function AchatsPage() {
 
                 <p className="text-sm text-slate-300">Montant</p>
                 <p className="mb-2 text-slate-100 font-semibold">
-                  {formatCurrency(
-                    achat?.prixAchat || achat?.montant || achat?.prixTotal,
-                  )}
+                  {formatCurrency(getAmount(achat))}
                 </p>
 
                 <p className="text-sm text-slate-300">Date</p>
@@ -134,16 +154,15 @@ function AchatsPage() {
 
                 <div className="mt-3">
                   <select
-                    value={normalizeStatus(achat?.statut) || "en attente"}
-                    onChange={(e) => changeStatus(id, e.target.value)}
+                    value={achat?.statut || "En attente"}
+                    onChange={(event) => changeStatus(id, event.target.value)}
                     className="filter-control w-full"
                   >
-                    <option value="En attente">En attente</option>
-                    <option value="Confirmé">Confirmé</option>
-                    <option value="Payé">Payé</option>
-                    <option value="Livré">Livré</option>
-                    <option value="Terminé">Terminé</option>
-                    <option value="Annulé">Annulé</option>
+                    {STATUS_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </article>
@@ -165,30 +184,15 @@ function AchatsPage() {
           <tbody>
             {filtered.map((achat) => {
               const id = achat?._id || achat?.id;
-              const commandeClient = achat?.commande?.client;
-              const clientName =
-                achat?.client?.nom ||
-                achat?.client?.name ||
-                `${commandeClient?.name || ""} ${commandeClient?.surname || ""}`.trim() ||
-                achat?.nomClient ||
-                "-";
-              const carName =
-                achat?.voiture?.marque &&
-                (achat?.voiture?.modele || achat?.voiture?.modelCar)
-                  ? `${achat.voiture.marque} ${achat.voiture.modele || achat.voiture.modelCar}`
-                  : achat?.car?.name ||
-                    achat?.voiture?.name ||
-                    achat?.modeleVoiture ||
-                    "-";
+              const clientName = getClientName(achat);
+              const carName = getCarName(achat);
 
               return (
                 <tr key={id}>
                   <td className="text-slate-100">{clientName}</td>
                   <td className="text-slate-100">{carName}</td>
                   <td className="text-slate-100">
-                    {formatCurrency(
-                      achat?.prixAchat || achat?.montant || achat?.prixTotal,
-                    )}
+                    {formatCurrency(getAmount(achat))}
                   </td>
                   <td className="text-slate-200">
                     {formatDate(achat?.createdAt || achat?.dateAchat)}
@@ -201,15 +205,14 @@ function AchatsPage() {
                   <td>
                     <select
                       value={achat?.statut || "En attente"}
-                      onChange={(e) => changeStatus(id, e.target.value)}
+                      onChange={(event) => changeStatus(id, event.target.value)}
                       className="filter-control max-w-40"
                     >
-                      <option value="En attente">En attente</option>
-                      <option value="Confirmé">Confirmé</option>
-                      <option value="Payé">Payé</option>
-                      <option value="Livré">Livré</option>
-                      <option value="Terminé">Terminé</option>
-                      <option value="Annulé">Annulé</option>
+                      {STATUS_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
                   </td>
                 </tr>

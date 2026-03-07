@@ -30,6 +30,23 @@ function buildDateRangeFilter(from?: string, to?: string): { $gte?: Date; $lte?:
 
     return Object.keys(dateFilter).length > 0 ? dateFilter : null;
 }
+
+function mapCommandeStatusToAchatStatus(status?: string): string {
+    switch (status) {
+        case 'Confirmée':
+            return 'Confirmé';
+        case 'En cours':
+            return 'Confirmé';
+        case 'Livrée':
+            return 'Livré';
+        case 'Annulée':
+            return 'Annulé';
+        case 'En attente':
+            return 'En attente';
+        default:
+            return 'En attente';
+    }
+}
 export const getUserAchats = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const userId = req.user?.id;
@@ -361,6 +378,47 @@ export const getAllAchatsAdmin = async (req: Request, res: Response): Promise<vo
             AchatModel.countDocuments(filter)
         ]);
 
+        if (achats.length === 0) {
+            const commandeFilter: Record<string, unknown> = {};
+            const dateFilterOnCommande = buildDateRangeFilter(from, to);
+            if (dateFilterOnCommande) commandeFilter.dateCommande = dateFilterOnCommande;
+
+            const commandes = await CommandeModel.find(commandeFilter)
+                .populate('client', 'name surname email')
+                .populate('voiture', 'marque modelCar year price image')
+                .sort({ dateCommande: -1 })
+                .skip(skip)
+                .limit(limit);
+
+            const achatsFromCommandes = commandes
+                .filter((commande: any) => {
+                    if (!statut) return true;
+                    return mapCommandeStatusToAchatStatus(commande?.statut) === statut;
+                })
+                .map((commande: any) => ({
+                    _id: commande?._id,
+                    statut: mapCommandeStatusToAchatStatus(commande?.statut),
+                    dateAchat: commande?.dateCommande,
+                    prixAchat: Number(commande?.montantTotal ?? commande?.montant ?? 0),
+                    voiture: commande?.voiture,
+                    commande,
+                    _source: 'commande-fallback'
+                }));
+
+            res.status(200).json({
+                success: true,
+                achats: achatsFromCommandes,
+                pagination: {
+                    currentPage: page,
+                    totalPages: Math.ceil(achatsFromCommandes.length / Math.max(limit, 1)),
+                    totalCount: achatsFromCommandes.length,
+                    hasNextPage: false,
+                    hasPrevPage: page > 1
+                }
+            });
+            return;
+        }
+
         res.status(200).json({
             success: true,
             achats,
@@ -417,7 +475,7 @@ export const getUserAchatsChartsByDate = async (req: AuthenticatedRequest, res: 
         const dateFilter = buildDateRangeFilter(from, to);
         if (dateFilter) match.dateAchat = dateFilter;
 
-        const points = await AchatModel.aggregate([
+        let points = await AchatModel.aggregate([
             { $match: match },
             {
                 $group: {
@@ -441,6 +499,41 @@ export const getUserAchatsChartsByDate = async (req: AuthenticatedRequest, res: 
                 }
             }
         ]);
+
+        if (points.length === 0) {
+            const commandesMatch: Record<string, unknown> = { client: new Types.ObjectId(userId) };
+            const commandeDateFilter = buildDateRangeFilter(from, to);
+            if (commandeDateFilter) commandesMatch.dateCommande = commandeDateFilter;
+
+            points = await CommandeModel.aggregate([
+                { $match: commandesMatch },
+                {
+                    $group: {
+                        _id: {
+                            $dateToString: {
+                                format: '%Y-%m-%d',
+                                date: '$dateCommande'
+                            }
+                        },
+                        totalAchats: { $sum: 1 },
+                        totalMontant: {
+                            $sum: {
+                                $ifNull: ['$montantTotal', '$montant']
+                            }
+                        }
+                    }
+                },
+                { $sort: { _id: 1 } },
+                {
+                    $project: {
+                        _id: 0,
+                        date: '$_id',
+                        totalAchats: 1,
+                        totalMontant: 1
+                    }
+                }
+            ]);
+        }
 
         res.status(200).json({ success: true, points });
     } catch (error) {

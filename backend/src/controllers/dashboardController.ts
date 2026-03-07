@@ -4,6 +4,7 @@ import CommandeModel from '../models/Commande';
 import VenteModel from '../models/Vente';
 import CarModel from '../models/Car';
 import ClientModel from '../models/Client';
+import LocationModel from '../models/Location';
 
 // Types pour les documents lean populés
 interface LeanClient {
@@ -67,14 +68,16 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
             .populate('voiture', 'marque model year price couleur')
             .populate('commande', 'statut montantTotal')
             .lean<LeanVentePopulated[]>();
+        const locations = await LocationModel.find().lean<any[]>();
 
-        console.log(`Données récupérées - Clients: ${clients.length}, Voitures: ${voitures.length}, Commandes: ${commandes.length}, Ventes: ${ventes.length}`);
+        console.log(`Données récupérées - Clients: ${clients.length}, Voitures: ${voitures.length}, Commandes: ${commandes.length}, Ventes: ${ventes.length}, Locations: ${locations.length}`);
 
         const totalClients = clients.length;
         const totalVoitures = voitures.length;
         const voituresDisponibles = voitures.filter(v => v.disponible).length;
         const totalCommandes = commandes.length;
         const totalVentes = ventes.length;
+        const voituresLouees = locations.filter((location) => ['Confirmée', 'En cours', 'Terminée'].includes(location?.statut)).length;
 
         const revenueTotal = ventes
             .filter(v => v.statut === 'Payée' || v.statut === 'Confirmée')
@@ -109,6 +112,11 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
         const revenue30Jours = ventesRecent
             .filter(v => v.statut === 'Payée' || v.statut === 'Confirmée')
             .reduce((sum, vente) => sum + (vente.prixVente || 0), 0);
+
+        const locationsRecent = locations.filter((location) => {
+            const date = location?.createdAt;
+            return date && new Date(date) >= thirtyDaysAgo;
+        });
 
         console.log("Dates de création des ventes:");
         ventes.forEach(v => {
@@ -205,6 +213,7 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
             voitures: {
                 total: totalVoitures,
                 disponibles: voituresDisponibles,
+                loue: voituresLouees,
                 liste: voituresListe
             },
             commandes: {
@@ -219,6 +228,7 @@ export const getDashboardData = async (req: Request, res: Response): Promise<voi
                 revenueTotal,
                 commandes30Jours: commandesRecent.length,
                 ventes30Jours: ventesRecent.length,
+                locations30Jours: locationsRecent.length,
                 revenue30Jours
             }
         };

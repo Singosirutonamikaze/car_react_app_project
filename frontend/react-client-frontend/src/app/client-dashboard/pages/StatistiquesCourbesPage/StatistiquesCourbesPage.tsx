@@ -15,22 +15,7 @@ import ROUTES from "../../../../router";
 interface Point {
   label: string;
   value: number;
-}
-
-function resolveBarWidthClass(value: number, maxValue: number): string {
-  const ratio = Math.max(value / Math.max(maxValue, 1), 0.08);
-
-  if (ratio >= 0.9) return "w-full";
-  if (ratio >= 0.8) return "w-10/12";
-  if (ratio >= 0.7) return "w-9/12";
-  if (ratio >= 0.6) return "w-8/12";
-  if (ratio >= 0.5) return "w-7/12";
-  if (ratio >= 0.4) return "w-6/12";
-  if (ratio >= 0.3) return "w-5/12";
-  if (ratio >= 0.2) return "w-4/12";
-  if (ratio >= 0.1) return "w-3/12";
-
-  return "w-2/12";
+  amount: number;
 }
 
 function StatistiquesCourbesPage() {
@@ -88,11 +73,29 @@ function StatistiquesCourbesPage() {
     return trendPoints.map((point) => ({
       label: new Date(point.date).toLocaleDateString("fr-FR"),
       value: point.totalAchats,
+      amount: Number(point.totalMontant ?? 0),
     }));
   }, [trendPoints]);
 
   const maxValue = Math.max(...points.map((point) => point.value), 1);
+  const maxAmount = Math.max(...points.map((point) => point.amount), 1);
   const hasData = points.some((point) => point.value > 0);
+
+  const chartWidth = 900;
+  const chartHeight = 320;
+  const padding = { top: 24, right: 24, bottom: 56, left: 40 };
+  const plotWidth = chartWidth - padding.left - padding.right;
+  const plotHeight = chartHeight - padding.top - padding.bottom;
+  const barSlot = points.length > 0 ? plotWidth / points.length : plotWidth;
+  const barWidth = Math.max(16, Math.min(52, barSlot * 0.56));
+
+  const linePath = points
+    .map((point, index) => {
+      const x = padding.left + index * barSlot + barSlot / 2;
+      const y = padding.top + (1 - point.amount / Math.max(maxAmount, 1)) * plotHeight;
+      return `${index === 0 ? "M" : "L"} ${x} ${y}`;
+    })
+    .join(" ");
 
   return (
     <AuthenticatedContent isLoading={loading || dashboardLoading} isAuthenticated={isAuthenticated}>
@@ -109,22 +112,42 @@ function StatistiquesCourbesPage() {
         </button>
 
         {hasData ? (
-          <div className="rounded-lg border client-theme-card-soft p-5">
-            <h3 className="text-base font-semibold client-theme-text-primary mb-5">Evolution des achats par date</h3>
-            <div className="space-y-4">
-              {points.map((point) => {
-                return (
-                  <div key={point.label}>
-                    <div className="flex justify-between text-xs client-theme-text-secondary mb-1">
-                      <span>{point.label}</span>
-                      <span>{point.value}</span>
-                    </div>
-                    <div className="h-3 rounded-lg overflow-hidden client-theme-card">
-                      <div className={`h-full rounded-lg client-theme-progress ${resolveBarWidthClass(point.value, maxValue)}`} />
-                    </div>
-                  </div>
-                );
-              })}
+          <div className="rounded-lg border client-theme-card-soft p-5 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-base font-semibold client-theme-text-primary">Histogramme + courbe des achats</h3>
+              <div className="flex items-center gap-4 text-xs client-theme-text-secondary">
+                <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-sm client-theme-progress" />Nombre d'achats</span>
+                <span className="inline-flex items-center gap-2"><span className="h-0.5 w-4 bg-cyan-300" />Montant total</span>
+              </div>
+            </div>
+
+            <div className="w-full overflow-x-auto rounded-lg border client-theme-card p-3">
+              <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="min-w-[760px] w-full h-[320px]" aria-label="Histogramme et courbe des achats">
+                <line x1={padding.left} y1={padding.top + plotHeight} x2={padding.left + plotWidth} y2={padding.top + plotHeight} stroke="currentColor" opacity="0.25" />
+
+                {points.map((point, index) => {
+                  const x = padding.left + index * barSlot + (barSlot - barWidth) / 2;
+                  const barHeight = (point.value / Math.max(maxValue, 1)) * plotHeight;
+                  const y = padding.top + plotHeight - barHeight;
+                  const labelX = padding.left + index * barSlot + barSlot / 2;
+                  return (
+                    <g key={`bar-${point.label}-${index}`}>
+                      <rect x={x} y={y} width={barWidth} height={Math.max(2, barHeight)} rx={4} className="client-theme-progress" />
+                      <text x={labelX} y={padding.top + plotHeight + 18} textAnchor="middle" fontSize="10" fill="currentColor" opacity="0.72">
+                        {point.label}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {linePath ? <path d={linePath} fill="none" stroke="#67e8f9" strokeWidth="2.5" /> : null}
+
+                {points.map((point, index) => {
+                  const x = padding.left + index * barSlot + barSlot / 2;
+                  const y = padding.top + (1 - point.amount / Math.max(maxAmount, 1)) * plotHeight;
+                  return <circle key={`dot-${point.label}-${index}`} cx={x} cy={y} r={3.2} fill="#67e8f9" />;
+                })}
+              </svg>
             </div>
           </div>
         ) : (

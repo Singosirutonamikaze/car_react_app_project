@@ -250,9 +250,9 @@ const DashboardPage = () => {
 
           <StatsCardOverview
             icon={<LuClipboard className="text-2xl" />}
-            label="Ventes (30j)"
+            label="Locations (30j)"
             value={addThousandSeparator(
-              safeData?.statistiques?.ventes30Jours || 0,
+              safeData?.statistiques?.locations30Jours || 0,
             )}
             color="bg-gradient-to-r from-amber-500 to-orange-600"
             textColor="text-white"

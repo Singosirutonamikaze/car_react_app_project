@@ -17,6 +17,8 @@ export const useLocations = () => {
       let normalized = [];
       if (Array.isArray(response)) {
         normalized = response;
+      } else if (Array.isArray(response?.locations)) {
+        normalized = response.locations;
       } else if (Array.isArray(response?.data)) {
         normalized = response.data;
       }

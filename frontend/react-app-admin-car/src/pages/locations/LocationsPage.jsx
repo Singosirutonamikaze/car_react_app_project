@@ -6,12 +6,67 @@ import { LuMapPinned } from "react-icons/lu";
 
 const formatCurrency = (value) => {
   const amount = Number(value || 0);
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
+  return `${new Intl.NumberFormat("fr-FR", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(amount)} FCFA`;
+};
+
+const getLocationAmount = (location) => {
+  if (Number(location?.montantTotal) > 0) {
+    return Number(location.montantTotal);
+  }
+  if (Number(location?.montant) > 0) {
+    return Number(location.montant);
+  }
+  if (Number(location?.prixTotal) > 0) {
+    return Number(location.prixTotal);
+  }
+
+  const prixParJour = Number(location?.prixParJour || 0);
+  const duree = Number(location?.duree || 0);
+  if (prixParJour > 0 && duree > 0) {
+    return prixParJour * duree;
+  }
+
+  return 0;
+};
+
+const normalizeStatus = (value) =>
+  String(value || "")
+    .normalize("NFD")
+    .replaceAll(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+const STATUS_OPTIONS = [
+  { value: "En attente", label: "En attente" },
+  { value: "Confirm\u00e9e", label: "Confirmee" },
+  { value: "En cours", label: "En cours" },
+  { value: "Termin\u00e9e", label: "Terminee" },
+  { value: "Annul\u00e9e", label: "Annulee" },
+];
+
+const FILTER_OPTIONS = [
+  "Tous",
+  "En attente",
+  "Confirmee",
+  "En cours",
+  "Terminee",
+  "Annulee",
+];
+
+const getClientName = (location) =>
+  location?.client?.nom || location?.client?.name || location?.nomClient || "-";
+
+const getCarName = (location) => {
+  if (location?.voiture?.marque && location?.voiture?.modele) {
+    return `${location.voiture.marque} ${location.voiture.modele}`;
+  }
+  if (location?.voiture?.marque && location?.voiture?.modelCar) {
+    return `${location.voiture.marque} ${location.voiture.modelCar}`;
+  }
+  return location?.car?.name || location?.voiture?.name || "-";
 };
 
 const formatDate = (value) => {
@@ -28,20 +83,14 @@ function LocationsPage() {
   const { locations, loading, changeStatus, removeLocation } = useLocations();
   const [selectedStatus, setSelectedStatus] = useState("Tous");
 
-  const statusOptions = [
-    "Tous",
-    "En attente",
-    "Confirmée",
-    "En cours",
-    "Terminée",
-    "Annulée",
-  ];
-
   const filtered = useMemo(() => {
-    if (selectedStatus === "Tous") {
+    const normalizedFilter = normalizeStatus(selectedStatus);
+    if (!normalizedFilter || normalizedFilter === "tous") {
       return locations;
     }
-    return locations.filter((item) => item?.statut === selectedStatus);
+    return locations.filter(
+      (item) => normalizeStatus(item?.statut) === normalizedFilter,
+    );
   }, [locations, selectedStatus]);
 
   let content = null;
@@ -67,20 +116,8 @@ function LocationsPage() {
         <div className="grid grid-cols-1 gap-4 md:hidden">
           {filtered.map((location) => {
             const id = location?._id || location?.id;
-            const clientName =
-              location?.client?.nom ||
-              location?.client?.name ||
-              location?.nomClient ||
-              "-";
-            let carName = location?.car?.name || location?.voiture?.name || "-";
-            if (location?.voiture?.marque && location?.voiture?.modele) {
-              carName = `${location.voiture.marque} ${location.voiture.modele}`;
-            } else if (
-              location?.voiture?.marque &&
-              location?.voiture?.modelCar
-            ) {
-              carName = `${location.voiture.marque} ${location.voiture.modelCar}`;
-            }
+            const clientName = getClientName(location);
+            const carName = getCarName(location);
 
             return (
               <article
@@ -109,7 +146,7 @@ function LocationsPage() {
                 </div>
 
                 <p className="mt-3 text-slate-100 font-semibold">
-                  {formatCurrency(location?.montant || location?.prixTotal)}
+                  {formatCurrency(getLocationAmount(location))}
                 </p>
 
                 <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -121,14 +158,14 @@ function LocationsPage() {
                 <div className="mt-3 grid grid-cols-1 gap-2">
                   <select
                     value={location?.statut || "En attente"}
-                    onChange={(e) => changeStatus(id, e.target.value)}
+                    onChange={(event) => changeStatus(id, event.target.value)}
                     className="filter-control w-full"
                   >
-                    <option value="En attente">En attente</option>
-                    <option value="Confirmée">Confirmée</option>
-                    <option value="En cours">En cours</option>
-                    <option value="Terminée">Terminée</option>
-                    <option value="Annulée">Annulée</option>
+                    {STATUS_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
                   <button
                     type="button"
@@ -158,21 +195,8 @@ function LocationsPage() {
           <tbody>
             {filtered.map((location) => {
               const id = location?._id || location?.id;
-              const clientName =
-                location?.client?.nom ||
-                location?.client?.name ||
-                location?.nomClient ||
-                "-";
-              let carName =
-                location?.car?.name || location?.voiture?.name || "-";
-              if (location?.voiture?.marque && location?.voiture?.modele) {
-                carName = `${location.voiture.marque} ${location.voiture.modele}`;
-              } else if (
-                location?.voiture?.marque &&
-                location?.voiture?.modelCar
-              ) {
-                carName = `${location.voiture.marque} ${location.voiture.modelCar}`;
-              }
+              const clientName = getClientName(location);
+              const carName = getCarName(location);
 
               return (
                 <tr key={id}>
@@ -190,7 +214,7 @@ function LocationsPage() {
                   </td>
                   <td>
                     <span className="text-slate-100">
-                      {formatCurrency(location?.montant || location?.prixTotal)}
+                      {formatCurrency(getLocationAmount(location))}
                     </span>
                   </td>
                   <td>
@@ -202,14 +226,16 @@ function LocationsPage() {
                     <div className="flex items-center gap-2">
                       <select
                         value={location?.statut || "En attente"}
-                        onChange={(e) => changeStatus(id, e.target.value)}
+                        onChange={(event) =>
+                          changeStatus(id, event.target.value)
+                        }
                         className="filter-control max-w-40"
                       >
-                        <option value="En attente">En attente</option>
-                        <option value="Confirmée">Confirmée</option>
-                        <option value="En cours">En cours</option>
-                        <option value="Terminée">Terminée</option>
-                        <option value="Annulée">Annulée</option>
+                        {STATUS_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
                       </select>
                       <button
                         type="button"
@@ -259,7 +285,7 @@ function LocationsPage() {
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 className="filter-control w-full"
               >
-                {statusOptions.map((option) => (
+                {FILTER_OPTIONS.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>

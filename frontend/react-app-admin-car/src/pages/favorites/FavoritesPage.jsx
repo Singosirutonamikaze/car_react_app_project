@@ -6,16 +6,25 @@ import { resolveImageUrl } from "../../utils/imageUrl";
 
 const formatCurrency = (value) => {
   const amount = Number(value || 0);
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
+  return `${new Intl.NumberFormat("fr-FR", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(amount)} FCFA`;
+};
+
+const getCarTitle = (car) => {
+  if (car?.marque && car?.modele) {
+    return `${car.marque} ${car.modele}`;
+  }
+  if (car?.marque && car?.modelCar) {
+    return `${car.marque} ${car.modelCar}`;
+  }
+  return car?.name || "Voiture";
 };
 
 function FavoritesPage() {
   const { favorites, loading, remove } = useFavorites();
+  const favoriteList = Array.isArray(favorites) ? favorites : [];
 
   let content = null;
   if (loading) {
@@ -28,7 +37,7 @@ function FavoritesPage() {
         />
       </div>
     );
-  } else if (favorites.length === 0) {
+  } else if (favoriteList.length === 0) {
     content = (
       <div className="card p-6">
         <EmptyState
@@ -41,16 +50,11 @@ function FavoritesPage() {
   } else {
     content = (
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {favorites.map((favorite) => {
+        {favoriteList.map((favorite) => {
           const id = favorite?._id || favorite?.id;
           const car =
             favorite?.carId || favorite?.voiture || favorite?.car || {};
-          let title = car?.name || "Voiture";
-          if (car?.marque && car?.modele) {
-            title = `${car.marque} ${car.modele}`;
-          } else if (car?.marque && car?.modelCar) {
-            title = `${car.marque} ${car.modelCar}`;
-          }
+          const title = getCarTitle(car);
           const image =
             resolveImageUrl(car?.image || car?.images?.[0]) ||
             "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=900";
