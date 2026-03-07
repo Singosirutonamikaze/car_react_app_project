@@ -25,7 +25,7 @@ export const getUserFavorites = async (req: AuthenticatedRequest, res: Response)
             path: 'favorites',
             populate: {
                 path: 'voiture',
-                select: 'marque modele annee prix images disponible kilometrage carburant'
+                select: 'marque modelCar year price image disponible kilometrage carburant'
             },
             options: {
                 sort: { dateAjout: -1 },
@@ -73,17 +73,20 @@ export const getUserFavorites = async (req: AuthenticatedRequest, res: Response)
 export const addFavorite = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const userId = req.user?.id;
-        const { voitureId, notes } = req.body;
+        const { notes } = req.body;
+        const voitureId = req.body?.voitureId ?? req.body?.carId;
 
         if (!userId) {
             res.status(401).json({ message: 'Non autorisé.' });
             return;
         }
 
-        if (!voitureId) {
+        if (!voitureId || !Types.ObjectId.isValid(String(voitureId))) {
             res.status(400).json({ message: 'ID de voiture requis.' });
             return;
         }
+
+        const voitureObjectId = new Types.ObjectId(String(voitureId));
 
         // Vérifier si déjà en favoris
         const user = await UserModel.findById(userId);
@@ -93,7 +96,7 @@ export const addFavorite = async (req: AuthenticatedRequest, res: Response): Pro
         }
 
         // Vérifier si la voiture est déjà en favoris AVANT de créer le document
-        const existingFavoriteInDb = await FavoriteModel.findOne({ voiture: voitureId });
+        const existingFavoriteInDb = await FavoriteModel.findOne({ voiture: voitureObjectId });
 
         if (existingFavoriteInDb && user.favorites) {
             const favoriteExists = user.favorites.some(fav => {
@@ -109,7 +112,7 @@ export const addFavorite = async (req: AuthenticatedRequest, res: Response): Pro
 
         // Créer le favori
         const newFavorite = new FavoriteModel({
-            voiture: voitureId,
+            voiture: voitureObjectId,
             notes: notes || undefined
         });
 
@@ -122,7 +125,7 @@ export const addFavorite = async (req: AuthenticatedRequest, res: Response): Pro
 
         // Populer la réponse
         const populatedFavorite = await FavoriteModel.findById(savedFavorite._id)
-            .populate('voiture', 'marque modele annee prix images disponible');
+            .populate('voiture', 'marque modelCar year price image disponible');
 
         res.status(201).json({
             message: 'Ajouté aux favoris.',
@@ -191,17 +194,19 @@ export const removeFavorite = async (req: AuthenticatedRequest, res: Response): 
 export const toggleFavorite = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const userId = req.user?.id;
-        const { voitureId } = req.body;
+        const voitureId = req.body?.voitureId ?? req.body?.carId;
 
         if (!userId) {
             res.status(401).json({ message: 'Non autorisé.' });
             return;
         }
 
-        if (!voitureId || !Types.ObjectId.isValid(voitureId)) {
+        if (!voitureId || !Types.ObjectId.isValid(String(voitureId))) {
             res.status(400).json({ message: 'ID de voiture invalide.' });
             return;
         }
+
+        const voitureObjectId = new Types.ObjectId(String(voitureId));
 
         const user = await UserModel.findById(userId);
         if (!user) {
@@ -210,7 +215,7 @@ export const toggleFavorite = async (req: AuthenticatedRequest, res: Response): 
         }
 
         // Chercher si la voiture est déjà en favoris
-        const existingFavorite = await FavoriteModel.findOne({ voiture: voitureId });
+        const existingFavorite = await FavoriteModel.findOne({ voiture: voitureObjectId });
 
         let favoriteExists = false;
         if (existingFavorite && user.favorites) {
@@ -237,7 +242,7 @@ export const toggleFavorite = async (req: AuthenticatedRequest, res: Response): 
             });
         } else {
             // Ajouter
-            const newFavorite = new FavoriteModel({ voiture: voitureId });
+            const newFavorite = new FavoriteModel({ voiture: voitureObjectId });
             const savedFavorite = await newFavorite.save();
 
             user.favorites = user.favorites || [];
@@ -265,14 +270,14 @@ export const toggleFavorite = async (req: AuthenticatedRequest, res: Response): 
 export const toggleFavoriteSimple = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const userId = req.user?.id;
-        const { voitureId } = req.body;
+        const voitureId = req.body?.voitureId ?? req.body?.carId;
 
         if (!userId) {
             res.status(401).json({ message: 'Non autorisé.' });
             return;
         }
 
-        if (!voitureId || !Types.ObjectId.isValid(voitureId)) {
+        if (!voitureId || !Types.ObjectId.isValid(String(voitureId))) {
             res.status(400).json({ message: 'ID de voiture invalide.' });
             return;
         }
@@ -347,14 +352,14 @@ const toObjectId = (value: unknown): Types.ObjectId => {
 export const toggleFavoriteClean = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const userId = req.user?.id;
-        const { voitureId } = req.body;
+        const voitureId = req.body?.voitureId ?? req.body?.carId;
 
         if (!userId) {
             res.status(401).json({ message: 'Non autorisé.' });
             return;
         }
 
-        if (!voitureId || !Types.ObjectId.isValid(voitureId)) {
+        if (!voitureId || !Types.ObjectId.isValid(String(voitureId))) {
             res.status(400).json({ message: 'ID de voiture invalide.' });
             return;
         }

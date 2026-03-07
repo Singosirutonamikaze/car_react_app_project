@@ -100,7 +100,12 @@ class DashboardService {
       body: JSON.stringify(profileData),
     });
     if (!response.ok) {
-      throw new Error(`Erreur HTTP: ${response.status}`);
+      if (response.status === 413) {
+        throw new Error("Votre image est  trop large");
+      }
+
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || `Erreur HTTP: ${response.status}`);
     }
     const data = await response.json();
     if (!data.success) {
