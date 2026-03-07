@@ -69,6 +69,26 @@ export const getUserFavorites = async (req: AuthenticatedRequest, res: Response)
     }
 };
 
+export const getAllFavoritesAdmin = async (_req: Request, res: Response): Promise<void> => {
+    try {
+        const favorites = await FavoriteModel.find({})
+            .populate('voiture', 'marque modelCar year price image disponible kilometrage carburant')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            favorites,
+            count: favorites.length
+        });
+    } catch (error) {
+        console.error('Erreur getAllFavoritesAdmin :', error);
+        res.status(500).json({
+            message: 'Erreur interne du serveur.',
+            success: false
+        });
+    }
+};
+
 // Ajouter un favori
 export const addFavorite = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
@@ -186,6 +206,41 @@ export const removeFavorite = async (req: AuthenticatedRequest, res: Response): 
         console.error("Erreur removeFavorite :", error);
         res.status(500).json({
             message: "Erreur interne du serveur.",
+            success: false
+        });
+    }
+};
+
+export const removeFavoriteAdmin = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { favoriteId } = req.params;
+
+        if (!favoriteId || !Types.ObjectId.isValid(favoriteId)) {
+            res.status(400).json({ message: 'ID de favori invalide.', success: false });
+            return;
+        }
+
+        const favoriteObjectId = new Types.ObjectId(favoriteId);
+        const deleted = await FavoriteModel.findByIdAndDelete(favoriteObjectId);
+
+        if (!deleted) {
+            res.status(404).json({ message: 'Favori non trouvé.', success: false });
+            return;
+        }
+
+        await UserModel.updateMany(
+            { favorites: favoriteObjectId },
+            { $pull: { favorites: favoriteObjectId } }
+        );
+
+        res.status(200).json({
+            message: 'Favori supprimé avec succès.',
+            success: true
+        });
+    } catch (error) {
+        console.error('Erreur removeFavoriteAdmin :', error);
+        res.status(500).json({
+            message: 'Erreur interne du serveur.',
             success: false
         });
     }

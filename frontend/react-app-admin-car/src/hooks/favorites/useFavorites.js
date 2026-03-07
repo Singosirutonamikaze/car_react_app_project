@@ -17,6 +17,8 @@ export const useFavorites = () => {
       let normalized = [];
       if (Array.isArray(response)) {
         normalized = response;
+      } else if (Array.isArray(response?.favorites)) {
+        normalized = response.favorites;
       } else if (Array.isArray(response?.data)) {
         normalized = response.data;
       }

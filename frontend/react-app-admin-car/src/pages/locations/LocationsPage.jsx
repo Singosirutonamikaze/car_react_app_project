@@ -28,7 +28,14 @@ function LocationsPage() {
   const { locations, loading, changeStatus, removeLocation } = useLocations();
   const [selectedStatus, setSelectedStatus] = useState("Tous");
 
-  const statusOptions = ["Tous", "en_attente", "active", "terminee", "annulee"];
+  const statusOptions = [
+    "Tous",
+    "En attente",
+    "Confirmée",
+    "En cours",
+    "Terminée",
+    "Annulée",
+  ];
 
   const filtered = useMemo(() => {
     if (selectedStatus === "Tous") {
@@ -65,10 +72,15 @@ function LocationsPage() {
               location?.client?.name ||
               location?.nomClient ||
               "-";
-            const carName =
-              location?.voiture?.marque && location?.voiture?.modele
-                ? `${location.voiture.marque} ${location.voiture.modele}`
-                : location?.car?.name || location?.voiture?.name || "-";
+            let carName = location?.car?.name || location?.voiture?.name || "-";
+            if (location?.voiture?.marque && location?.voiture?.modele) {
+              carName = `${location.voiture.marque} ${location.voiture.modele}`;
+            } else if (
+              location?.voiture?.marque &&
+              location?.voiture?.modelCar
+            ) {
+              carName = `${location.voiture.marque} ${location.voiture.modelCar}`;
+            }
 
             return (
               <article
@@ -108,14 +120,15 @@ function LocationsPage() {
 
                 <div className="mt-3 grid grid-cols-1 gap-2">
                   <select
-                    value={location?.statut || "en_attente"}
+                    value={location?.statut || "En attente"}
                     onChange={(e) => changeStatus(id, e.target.value)}
                     className="filter-control w-full"
                   >
-                    <option value="en_attente">en_attente</option>
-                    <option value="active">active</option>
-                    <option value="terminee">terminee</option>
-                    <option value="annulee">annulee</option>
+                    <option value="En attente">En attente</option>
+                    <option value="Confirmée">Confirmée</option>
+                    <option value="En cours">En cours</option>
+                    <option value="Terminée">Terminée</option>
+                    <option value="Annulée">Annulée</option>
                   </select>
                   <button
                     type="button"
@@ -150,10 +163,16 @@ function LocationsPage() {
                 location?.client?.name ||
                 location?.nomClient ||
                 "-";
-              const carName =
-                location?.voiture?.marque && location?.voiture?.modele
-                  ? `${location.voiture.marque} ${location.voiture.modele}`
-                  : location?.car?.name || location?.voiture?.name || "-";
+              let carName =
+                location?.car?.name || location?.voiture?.name || "-";
+              if (location?.voiture?.marque && location?.voiture?.modele) {
+                carName = `${location.voiture.marque} ${location.voiture.modele}`;
+              } else if (
+                location?.voiture?.marque &&
+                location?.voiture?.modelCar
+              ) {
+                carName = `${location.voiture.marque} ${location.voiture.modelCar}`;
+              }
 
               return (
                 <tr key={id}>
@@ -182,14 +201,15 @@ function LocationsPage() {
                   <td>
                     <div className="flex items-center gap-2">
                       <select
-                        value={location?.statut || "en_attente"}
+                        value={location?.statut || "En attente"}
                         onChange={(e) => changeStatus(id, e.target.value)}
                         className="filter-control max-w-40"
                       >
-                        <option value="en_attente">en_attente</option>
-                        <option value="active">active</option>
-                        <option value="terminee">terminee</option>
-                        <option value="annulee">annulee</option>
+                        <option value="En attente">En attente</option>
+                        <option value="Confirmée">Confirmée</option>
+                        <option value="En cours">En cours</option>
+                        <option value="Terminée">Terminée</option>
+                        <option value="Annulée">Annulée</option>
                       </select>
                       <button
                         type="button"

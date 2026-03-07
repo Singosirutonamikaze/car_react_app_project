@@ -43,6 +43,8 @@ router.get('/user/achats', userProtect, getUserAchats);
 router.get('/user/achats/charts', userProtect, getUserAchatsChartsByDate);
 router.get('/admin/achats', adminProtect, getAllAchatsAdmin);
 router.get('/admin/achats/charts', adminProtect, getAdminAchatsChartsByDate);
+router.get('/admin/getAll', adminProtect, getAllAchatsAdmin);
+router.get('/admin/charts', adminProtect, getAdminAchatsChartsByDate);
 router.put('/admin/achats/:id/status', adminProtect, updateAchatStatusAdmin);
 
 /**

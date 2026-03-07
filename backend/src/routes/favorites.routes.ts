@@ -1,9 +1,11 @@
 import express from 'express';
-import { userProtect } from '../middleware/authMiddleware';
-import { 
-    getUserFavorites, 
+import { adminProtect, userProtect } from '../middleware/authMiddleware';
+import {
+    getAllFavoritesAdmin,
+    getUserFavorites,
     addFavorite,
     removeFavorite,
+    removeFavoriteAdmin,
     toggleFavorite,
     toggleFavoriteSimple,
     toggleFavoriteClean
@@ -37,6 +39,7 @@ const router = express.Router();
  *         $ref: '#/components/responses/Unauthorized'
  */
 router.get('/user/favorites', userProtect, getUserFavorites);
+router.get('/admin/favorites', adminProtect, getAllFavoritesAdmin);
 
 /**
  * @swagger
@@ -107,6 +110,7 @@ router.post('/user/favorites', userProtect, addFavorite);
  *         $ref: '#/components/responses/NotFound'
  */
 router.delete('/user/favorites/:favoriteId', userProtect, removeFavorite);
+router.delete('/admin/favorites/:favoriteId', adminProtect, removeFavoriteAdmin);
 
 /**
  * @swagger

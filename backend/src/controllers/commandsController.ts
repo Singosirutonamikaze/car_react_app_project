@@ -5,6 +5,7 @@ import { AchatModel } from '../models/Achat';
 import { IAdresseLivraison } from '../interfaces/ICommande';
 import UserModel from '../models/Client';
 import CarModel from '../models/Car';
+import VenteModel from '../models/Vente';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 
 interface PopulatedClient {
@@ -143,6 +144,17 @@ export const addCommande = async (req: AuthenticatedRequest, res: Response): Pro
 
         await nouvelAchat.save();
 
+        const nouvelleVente = new VenteModel({
+            voiture,
+            client: clientId,
+            commande: nouvelleCommande._id,
+            prixVente: Number.isFinite(montantNumber) ? montantNumber : 0,
+            statut: 'Confirmée',
+            notes
+        });
+
+        await nouvelleVente.save();
+
         await UserModel.findByIdAndUpdate(
             clientId,
             {
@@ -163,11 +175,17 @@ export const addCommande = async (req: AuthenticatedRequest, res: Response): Pro
             .populate('voiture', 'marque modelCar year price image')
             .populate('commande', 'statut montantTotal dateCommande');
 
+        const ventePopulee = await VenteModel.findById(nouvelleVente._id)
+            .populate('voiture', 'marque modelCar year price image')
+            .populate('client', 'name surname email')
+            .populate('commande', 'statut montantTotal dateCommande');
+
         res.status(201).json({
             success: true,
-            message: 'Commande et achat créés avec succès',
+            message: 'Commande, achat et vente créés avec succès',
             data: commandePopulee,
-            achat: achatPopule
+            achat: achatPopule,
+            vente: ventePopulee
         });
     } catch (error) {
         console.error('Erreur lors de la création de la commande:', error);

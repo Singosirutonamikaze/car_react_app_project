@@ -45,10 +45,12 @@ function FavoritesPage() {
           const id = favorite?._id || favorite?.id;
           const car =
             favorite?.carId || favorite?.voiture || favorite?.car || {};
-          const title =
-            car?.marque && car?.modele
-              ? `${car.marque} ${car.modele}`
-              : car?.name || "Voiture";
+          let title = car?.name || "Voiture";
+          if (car?.marque && car?.modele) {
+            title = `${car.marque} ${car.modele}`;
+          } else if (car?.marque && car?.modelCar) {
+            title = `${car.marque} ${car.modelCar}`;
+          }
           const image =
             resolveImageUrl(car?.image || car?.images?.[0]) ||
             "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=900";
