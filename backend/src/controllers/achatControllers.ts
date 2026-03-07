@@ -68,14 +68,30 @@ export const getUserAchats = async (req: AuthenticatedRequest, res: Response): P
             return;
         }
 
+        const userCommandeIds = await CommandeModel.find({ client: userId }).distinct('_id');
+
+        const userAchatIds = (user.achats || []).map((achat: any) => {
+            if (achat && typeof achat === 'object' && '_id' in achat) {
+                return (achat as { _id: Types.ObjectId })._id;
+            }
+            return achat as Types.ObjectId;
+        });
+
+        const achatOwnershipMatch: Record<string, unknown> = {
+            $or: [
+                { _id: { $in: userAchatIds } },
+                { commande: { $in: userCommandeIds } }
+            ]
+        };
+
         const matchQuery = statut ? { statut } : {};
         const totalAchats = await AchatModel.countDocuments({
-            _id: { $in: user.achats },
+            ...achatOwnershipMatch,
             ...matchQuery
         });
 
         const stats = await AchatModel.aggregate([
-            { $match: { _id: { $in: user.achats } } },
+            { $match: achatOwnershipMatch },
             {
                 $group: {
                     _id: '$statut',
@@ -382,8 +398,20 @@ export const getUserAchatsChartsByDate = async (req: AuthenticatedRequest, res: 
             return;
         }
 
+        const userCommandeIds = await CommandeModel.find({ client: userId }).distinct('_id');
+
+        const userAchatIds = (user.achats || []).map((achat: any) => {
+            if (achat && typeof achat === 'object' && '_id' in achat) {
+                return (achat as { _id: Types.ObjectId })._id;
+            }
+            return achat as Types.ObjectId;
+        });
+
         const match: Record<string, unknown> = {
-            _id: { $in: user.achats || [] }
+            $or: [
+                { _id: { $in: userAchatIds } },
+                { commande: { $in: userCommandeIds } }
+            ]
         };
 
         const dateFilter = buildDateRangeFilter(from, to);

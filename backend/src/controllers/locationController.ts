@@ -65,6 +65,12 @@ export const createLocation = async (req: Request, res: Response): Promise<void>
       return;
     }
 
+    const prixParJourNumber = Number(prixParJour);
+    if (!Number.isFinite(prixParJourNumber) || prixParJourNumber <= 0) {
+      res.status(400).json({ success: false, message: 'Prix par jour invalide' });
+      return;
+    }
+
     const debut = new Date(dateDebut);
     const fin = new Date(dateFin);
 
@@ -96,7 +102,7 @@ export const createLocation = async (req: Request, res: Response): Promise<void>
 
     // Calculer la durée et le montant total
     const duree = Math.ceil((fin.getTime() - debut.getTime()) / (1000 * 60 * 60 * 24));
-    const montantTotal = duree * prixParJour;
+    const montantTotal = duree * prixParJourNumber;
 
     const nouvelleLocation = new LocationModel({
       client: resolvedClientId,
@@ -104,7 +110,7 @@ export const createLocation = async (req: Request, res: Response): Promise<void>
       dateDebut: debut,
       dateFin: fin,
       duree,
-      prixParJour,
+      prixParJour: prixParJourNumber,
       montantTotal,
       modePaiement,
       notes,
@@ -120,7 +126,7 @@ export const createLocation = async (req: Request, res: Response): Promise<void>
 
     const locationPopulee = await LocationModel.findById(nouvelleLocation._id)
       .populate('client', 'name surname email')
-      .populate('voiture', 'marque modelCar year image');
+      .populate('voiture', 'marque modelCar year image price');
 
     res.status(201).json({
       success: true,
@@ -154,7 +160,7 @@ export const updateLocationStatut = async (req: Request, res: Response): Promise
       runValidators: true
     })
       .populate('client', 'name surname email')
-      .populate('voiture', 'marque modelCar year image');
+      .populate('voiture', 'marque modelCar year image price');
 
     if (!location) {
       res.status(404).json({ success: false, message: 'Location non trouvée' });
@@ -201,7 +207,7 @@ export const getLocationsByClient = async (req: Request, res: Response): Promise
     const { clientId } = req.params;
 
     const locations = await LocationModel.find({ client: clientId })
-      .populate('voiture', 'marque modelCar year image')
+      .populate('voiture', 'marque modelCar year image price')
       .sort({ createdAt: -1 });
 
     res.status(200).json({

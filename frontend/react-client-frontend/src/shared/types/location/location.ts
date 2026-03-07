@@ -3,6 +3,7 @@ export interface LocationCarInfo {
   marque?: string;
   modele?: string;
   modelCar?: string;
+  price?: number;
   year?: number;
   image?: string;
 }

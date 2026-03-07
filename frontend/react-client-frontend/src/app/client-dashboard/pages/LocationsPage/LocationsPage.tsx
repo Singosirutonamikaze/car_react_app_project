@@ -49,9 +49,36 @@ function formatDate(value?: string): string {
 function getLocationCarName(location: LocationInfo): string {
   const car = location.voiture;
   if (!car) return "Voiture";
-  if (car.marque && car.modele) return `${car.marque} ${car.modele}`;
-  if (car.marque && car.modelCar) return `${car.marque} ${car.modelCar}`;
-  return car.marque || "Voiture";
+  const marque = typeof car.marque === "string" ? car.marque.trim() : "";
+  const modele = typeof car.modele === "string" ? car.modele.trim() : "";
+  const modelCar = typeof car.modelCar === "string" ? car.modelCar.trim() : "";
+
+  if (marque && modele && marque !== "0") return `${marque} ${modele}`;
+  if (marque && modelCar && marque !== "0") return `${marque} ${modelCar}`;
+  if (marque && marque !== "0") return marque;
+  if (modele) return modele;
+  if (modelCar) return modelCar;
+
+  return "Voiture";
+}
+
+function getLocationAmount(location: LocationInfo): number {
+  if (typeof location.montantTotal === "number" && location.montantTotal > 0) {
+    return location.montantTotal;
+  }
+
+  const prixParJour = Number(location.prixParJour || 0);
+  const duree = Number(location.duree || 0);
+  if (prixParJour > 0 && duree > 0) {
+    return prixParJour * duree;
+  }
+
+  const carPrice = Number(location.voiture?.price || 0);
+  if (carPrice > 0 && duree > 0) {
+    return carPrice * duree;
+  }
+
+  return 0;
 }
 
 function LocationsPage() {
@@ -204,7 +231,7 @@ function LocationsPage() {
               <p className="client-theme-text-secondary text-sm mt-1">
                 Du {formatDate(location.dateDebut)} au {formatDate(location.dateFin)}
               </p>
-              <p className="client-theme-value font-medium mt-2">{formatCurrency(location.montantTotal)}</p>
+              <p className="client-theme-value font-medium mt-2">{formatCurrency(getLocationAmount(location))}</p>
               <p className="mt-2 text-xs inline-flex items-center rounded-full border px-2.5 py-1 client-theme-outline-button">
                 Statut: {location.statut || "En attente"}
               </p>
