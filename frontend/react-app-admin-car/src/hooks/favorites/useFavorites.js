@@ -21,6 +21,10 @@ export const useFavorites = () => {
         normalized = response.favorites;
       } else if (Array.isArray(response?.data)) {
         normalized = response.data;
+      } else if (Array.isArray(response?.data?.favorites)) {
+        normalized = response.data.favorites;
+      } else if (Array.isArray(response?.result?.favorites)) {
+        normalized = response.result.favorites;
       }
       setFavorites(normalized);
     } catch (error) {

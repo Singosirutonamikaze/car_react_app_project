@@ -79,6 +79,8 @@ function StatistiquesCourbesPage() {
 
   const maxValue = Math.max(...points.map((point) => point.value), 1);
   const maxAmount = Math.max(...points.map((point) => point.amount), 1);
+  const valueScaleMax = Math.max(maxValue * 1.2, 1);
+  const amountScaleMax = Math.max(maxAmount * 1.2, 1);
   const hasData = points.some((point) => point.value > 0);
 
   const chartWidth = 900;
@@ -92,7 +94,7 @@ function StatistiquesCourbesPage() {
   const linePath = points
     .map((point, index) => {
       const x = padding.left + index * barSlot + barSlot / 2;
-      const y = padding.top + (1 - point.amount / Math.max(maxAmount, 1)) * plotHeight;
+      const y = padding.top + (1 - point.amount / amountScaleMax) * plotHeight;
       return `${index === 0 ? "M" : "L"} ${x} ${y}`;
     })
     .join(" ");
@@ -117,35 +119,74 @@ function StatistiquesCourbesPage() {
               <h3 className="text-base font-semibold client-theme-text-primary">Histogramme + courbe des achats</h3>
               <div className="flex items-center gap-4 text-xs client-theme-text-secondary">
                 <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-sm client-theme-progress" />Nombre d'achats</span>
-                <span className="inline-flex items-center gap-2"><span className="h-0.5 w-4 bg-cyan-300" />Montant total</span>
+                <span className="inline-flex items-center gap-2"><span className="h-0.5 w-4 client-theme-chart-line-swatch" />Montant total</span>
               </div>
             </div>
 
             <div className="w-full overflow-x-auto rounded-lg border client-theme-card p-3">
               <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="min-w-[760px] w-full h-[320px]" aria-label="Histogramme et courbe des achats">
-                <line x1={padding.left} y1={padding.top + plotHeight} x2={padding.left + plotWidth} y2={padding.top + plotHeight} stroke="currentColor" opacity="0.25" />
+                <line
+                  x1={padding.left}
+                  y1={padding.top + plotHeight}
+                  x2={padding.left + plotWidth}
+                  y2={padding.top + plotHeight}
+                  className="client-theme-chart-axis"
+                  opacity="0.72"
+                />
 
                 {points.map((point, index) => {
                   const x = padding.left + index * barSlot + (barSlot - barWidth) / 2;
-                  const barHeight = (point.value / Math.max(maxValue, 1)) * plotHeight;
+                  const barHeight = (point.value / valueScaleMax) * plotHeight;
                   const y = padding.top + plotHeight - barHeight;
                   const labelX = padding.left + index * barSlot + barSlot / 2;
                   return (
                     <g key={`bar-${point.label}-${index}`}>
-                      <rect x={x} y={y} width={barWidth} height={Math.max(2, barHeight)} rx={4} className="client-theme-progress" />
-                      <text x={labelX} y={padding.top + plotHeight + 18} textAnchor="middle" fontSize="10" fill="currentColor" opacity="0.72">
+                      <rect
+                        x={x}
+                        y={y}
+                        width={barWidth}
+                        height={Math.max(2, barHeight)}
+                        rx={4}
+                        className="client-theme-chart-bar"
+                        opacity="0.86"
+                      />
+                      <text
+                        x={labelX}
+                        y={padding.top + plotHeight + 18}
+                        textAnchor="middle"
+                        fontSize="10"
+                        className="client-theme-chart-label"
+                        opacity="0.9"
+                      >
                         {point.label}
                       </text>
                     </g>
                   );
                 })}
 
-                {linePath ? <path d={linePath} fill="none" stroke="#67e8f9" strokeWidth="2.5" /> : null}
+                {linePath ? (
+                  <path
+                    d={linePath}
+                    fill="none"
+                    strokeWidth="2.5"
+                    className="client-theme-chart-line"
+                    opacity="0.96"
+                  />
+                ) : null}
 
                 {points.map((point, index) => {
                   const x = padding.left + index * barSlot + barSlot / 2;
-                  const y = padding.top + (1 - point.amount / Math.max(maxAmount, 1)) * plotHeight;
-                  return <circle key={`dot-${point.label}-${index}`} cx={x} cy={y} r={3.2} fill="#67e8f9" />;
+                  const y = padding.top + (1 - point.amount / amountScaleMax) * plotHeight;
+                  return (
+                    <circle
+                      key={`dot-${point.label}-${index}`}
+                      cx={x}
+                      cy={y}
+                      r={3.2}
+                      className="client-theme-chart-dot"
+                      opacity="0.96"
+                    />
+                  );
                 })}
               </svg>
             </div>

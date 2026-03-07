@@ -148,6 +148,30 @@
   background-color: var(--client-accent-strong);
 }
 
+.client-theme-chart-axis {
+  stroke: var(--client-border);
+}
+
+.client-theme-chart-bar {
+  fill: var(--client-accent-strong);
+}
+
+.client-theme-chart-line {
+  stroke: var(--client-text-primary);
+}
+
+.client-theme-chart-dot {
+  fill: var(--client-text-primary);
+}
+
+.client-theme-chart-label {
+  fill: var(--client-text-secondary);
+}
+
+.client-theme-chart-line-swatch {
+  background-color: var(--client-text-primary);
+}
+
 .client-theme-nav-link {
   color: var(--client-text-primary);
 }

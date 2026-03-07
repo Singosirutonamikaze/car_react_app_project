@@ -69,9 +69,12 @@ const API_PATHS = {
   },
   FAVORITES: {
     GET_ALL: `/api/version/favorites/admin/favorites`,
+    GET_ALL_COMPAT: `/api/version/favorites/admin/getAll`,
+    GET_ALL_COMPAT_ALT: `/api/version/favorites/getAll`,
     GET_USER_COMPAT: `/api/version/favorites/user/favorites`,
     TOGGLE: `/api/version/favorites/user/favorites/toggle-clean`,
     REMOVE: (favoriteId) => `/api/version/favorites/admin/favorites/${favoriteId}`,
+    REMOVE_COMPAT: (favoriteId) => `/api/version/favorites/admin/getAll/${favoriteId}`,
     REMOVE_USER_COMPAT: (favoriteId) => `/api/version/favorites/user/favorites/${favoriteId}`,
   },
   UPLOADS: {

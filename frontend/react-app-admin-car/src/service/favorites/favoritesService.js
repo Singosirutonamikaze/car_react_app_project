@@ -4,6 +4,8 @@ import { API_PATHS } from "../../utils/apiPath";
 export const getUserFavorites = async () => {
   const endpointCandidates = [
     API_PATHS.FAVORITES.GET_ALL,
+    API_PATHS.FAVORITES.GET_ALL_COMPAT,
+    API_PATHS.FAVORITES.GET_ALL_COMPAT_ALT,
     API_PATHS.FAVORITES.GET_USER_COMPAT,
   ];
 
@@ -32,6 +34,7 @@ export const toggleFavorite = async (carId) => {
 export const removeFavorite = async (favoriteId) => {
   const endpointCandidates = [
     API_PATHS.FAVORITES.REMOVE(favoriteId),
+    API_PATHS.FAVORITES.REMOVE_COMPAT(favoriteId),
     API_PATHS.FAVORITES.REMOVE_USER_COMPAT(favoriteId),
   ];
 
