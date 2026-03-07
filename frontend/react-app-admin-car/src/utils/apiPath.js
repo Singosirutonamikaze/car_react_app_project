@@ -53,6 +53,7 @@ const API_PATHS = {
     GET_USER: `/api/version/achat/admin/achats`,
     GET_ALL_FALLBACK: `/api/version/achat/admin/getAll`,
     GET_USER_COMPAT: `/api/version/achat/user/achats`,
+    GET_FROM_ORDERS: `/api/admin/orders/admin/getAll`,
     CHARTS: `/api/version/achat/admin/achats/charts`,
     CREATE: `/api/version/achat/user/achats`,
     UPDATE_STATUS: (achatId) => `/api/version/achat/admin/achats/${achatId}/status`,

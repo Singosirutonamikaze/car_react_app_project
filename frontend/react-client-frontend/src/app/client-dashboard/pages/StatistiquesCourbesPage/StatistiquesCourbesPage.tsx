@@ -8,6 +8,7 @@ import PageHeader from "../../components/PageHeader";
 import useAuth from "../../../../shared/hooks/auth";
 import useUser from "../../../../shared/hooks/user";
 import { dashboardService } from "../../../../shared/services/dashboard";
+import { orderService } from "../../../../shared/services/order";
 import type { AchatChartPoint } from "../../../../shared/types/dashboard";
 import ROUTES from "../../../../router";
 
@@ -51,7 +52,33 @@ function StatistiquesCourbesPage() {
       }
 
       const response = await dashboardService.getUserAchatsChartsByDate(token);
-      setTrendPoints(Array.isArray(response.points) ? response.points : []);
+      const directPoints = Array.isArray(response.points) ? response.points : [];
+
+      if (directPoints.length > 0) {
+        setTrendPoints(directPoints);
+        return;
+      }
+
+      // Fallback: dériver les tendances depuis les commandes si l'endpoint charts est vide/inactif.
+      const orders = await orderService.getAllOrders();
+      const grouped = new Map();
+
+      for (const order of orders) {
+        const rawDate = order?.dateCommande;
+        const date = rawDate ? new Date(rawDate) : null;
+        if (!date || Number.isNaN(date.getTime())) {
+          continue;
+        }
+
+        const key = date.toISOString().slice(0, 10);
+        const existing = grouped.get(key) || { date: key, totalAchats: 0, totalMontant: 0 };
+        existing.totalAchats += 1;
+        existing.totalMontant += Number(order?.montantTotal ?? order?.montant ?? 0);
+        grouped.set(key, existing);
+      }
+
+      const derivedPoints = Array.from(grouped.values()).sort((a, b) => a.date.localeCompare(b.date));
+      setTrendPoints(derivedPoints);
     };
 
     void loadTrends();
