@@ -1,136 +1,148 @@
-import React, { Component } from 'react';
-import Input from '../inputs/Input';
-import ProfileModel from '../models/ProfileModel';
+import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
+import Input from "../inputs/Input";
+import ProfileModel from "../models/ProfileModel";
+import { fileToDataUrl, resolveImageUrl } from "../../utils/imageUrl";
 
-class EditClientsForm extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      name: props.client?.name || '',
-      surname: props.client?.surname || '',
-      email: props.client?.email || '',
-      password: '',
-      profileImageUrl: props.client?.profileImageUrl || '',
-      profileImageFile: null
-    };
-  }
+function mapClientToForm(client) {
+  return {
+    name: client?.name || "",
+    surname: client?.surname || "",
+    email: client?.email || "",
+    password: "",
+    profileImageUrl: resolveImageUrl(client?.profileImageUrl) || "",
+    profileImageFile: null,
+  };
+}
 
-  componentDidUpdate(prevProps) {
-    if (prevProps.client !== this.props.client && this.props.client) {
-      this.setState({
-        name: this.props.client.name || '',
-        surname: this.props.client.surname || '',
-        email: this.props.client.email || '',
-        password: '',
-        profileImageUrl: this.props.client.profileImageUrl || '',
-        profileImageFile: null
-      });
+function EditClientsForm({ client, onSave, onCancel }) {
+  const [formData, setFormData] = useState(() => mapClientToForm(client));
+
+  useEffect(() => {
+    if (client) {
+      setFormData(mapClientToForm(client));
     }
-  }
+  }, [client]);
 
-  handleChange = (e) => {
-    this.setState({ [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  handleProfileImageChange = (file) => {
+  const handleProfileImageChange = async (file) => {
     if (file) {
-      this.setState({
+      const imageDataUrl =
+        typeof file === "string" ? file : await fileToDataUrl(file);
+
+      setFormData((prev) => ({
+        ...prev,
         profileImageFile: file,
-        profileImageUrl: typeof file === 'string' ? file : URL.createObjectURL(file)
-      });
+        profileImageUrl: imageDataUrl,
+      }));
     } else {
-      this.setState({ profileImageFile: null, profileImageUrl: '' });
+      setFormData((prev) => ({
+        ...prev,
+        profileImageFile: null,
+        profileImageUrl: "",
+      }));
     }
   };
 
-  handleSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    
-    if (this.props.onSave) {
+    const clientId = client?._id;
+
+    if (onSave && clientId) {
       const updatedClient = {
-        _id: this.props.client._id,
-        name: this.state.name,
-        surname: this.state.surname,
-        email: this.state.email,
-        profileImageUrl: this.state.profileImageUrl || null,
-        profileImageFile: this.state.profileImageFile || null
+        _id: clientId,
+        name: formData.name,
+        surname: formData.surname,
+        email: formData.email,
+        profileImageUrl: formData.profileImageUrl || null,
+        profileImageFile: formData.profileImageFile || null,
       };
 
-      // N'inclure le mot de passe que s'il a été modifié
-      if (this.state.password.trim()) {
-        updatedClient.password = this.state.password;
+      if (formData.password.trim()) {
+        updatedClient.password = formData.password;
       }
 
-      this.props.onSave(updatedClient);
+      onSave(updatedClient);
     }
   };
 
-  render() {
-    return (
-      <form onSubmit={this.handleSubmit} className="flex flex-col gap-4">
-        <ProfileModel 
-          onChange={this.handleProfileImageChange}
-          initialImage={this.state.profileImageUrl}
-        />
-        
-        <Input
-          type="text"
-          name="name"
-          label="Nom"
-          placeholder="Nom"
-          value={this.state.name}
-          onChange={this.handleChange}
-          required
-        />
-        
-        <Input
-          type="text"
-          name="surname"
-          label="Prénom"
-          placeholder="Prénom"
-          value={this.state.surname}
-          onChange={this.handleChange}
-          required
-        />
-        
-        <Input
-          type="email"
-          name="email"
-          label="Email"
-          placeholder="Email"
-          value={this.state.email}
-          onChange={this.handleChange}
-          required
-        />
-        
-        <Input
-          type="password"
-          name="password"
-          label="Nouveau mot de passe (optionnel)"
-          placeholder="Laissez vide pour conserver l'ancien"
-          value={this.state.password}
-          onChange={this.handleChange}
-        />
-        
-        <div className="flex gap-2 mt-4">
-          <button
-            type="submit"
-            className="bg-violet-500 hover:bg-violet-600 text-white py-2 px-4 rounded flex-1"
-          >
-            Sauvegarder
-          </button>
-          
-          <button
-            type="button"
-            onClick={this.props.onCancel}
-            className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded flex-1"
-          >
-            Annuler
-          </button>
-        </div>
-      </form>
-    );
-  }
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <ProfileModel
+        onChange={handleProfileImageChange}
+        initialImage={formData.profileImageUrl}
+      />
+
+      <Input
+        type="text"
+        name="name"
+        label="Nom"
+        placeholder="Nom"
+        value={formData.name}
+        onChange={handleChange}
+        required
+      />
+
+      <Input
+        type="text"
+        name="surname"
+        label="Prénom"
+        placeholder="Prénom"
+        value={formData.surname}
+        onChange={handleChange}
+        required
+      />
+
+      <Input
+        type="email"
+        name="email"
+        label="Email"
+        placeholder="Email"
+        value={formData.email}
+        onChange={handleChange}
+        required
+      />
+
+      <Input
+        type="password"
+        name="password"
+        label="Nouveau mot de passe (optionnel)"
+        placeholder="Laissez vide pour conserver l'ancien"
+        value={formData.password}
+        onChange={handleChange}
+      />
+
+      <div className="flex gap-2 mt-4">
+        <button type="submit" className="py-2 px-4 rounded flex-1 font-medium">
+          Sauvegarder
+        </button>
+
+        <button
+          type="button"
+          onClick={onCancel}
+          className="py-2 px-4 rounded flex-1 font-medium"
+        >
+          Annuler
+        </button>
+      </div>
+    </form>
+  );
 }
+
+EditClientsForm.propTypes = {
+  client: PropTypes.shape({
+    _id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    name: PropTypes.string,
+    surname: PropTypes.string,
+    email: PropTypes.string,
+    profileImageUrl: PropTypes.string,
+  }),
+  onSave: PropTypes.func,
+  onCancel: PropTypes.func,
+};
 
 export default EditClientsForm;

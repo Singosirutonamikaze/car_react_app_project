@@ -1,15 +1,15 @@
-export const validateEmail = (email : string) => {
+export const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
 }
 
 export const addThousandSeparator = (num) => {
-    if (num === null || num === undefined || isNaN(num)) {
+    if (num === null || num === undefined || Number.isNaN(num)) {
         return '0';
     }
 
     const [integerPart, fractionalPart] = num.toString().split('.');
-    const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    const formattedIntegerPart = integerPart.replaceAll(/\B(?=(\d{3})+(?!\d))/g, ',');
 
     return fractionalPart
         ? `${formattedIntegerPart}.${fractionalPart}`
@@ -23,4 +23,3 @@ export const prepareCommandeBarChartData = (data) => {
         month: new Date(item.dateCommande).toLocaleString('default', { month: 'long' }),
     }));
 };
-

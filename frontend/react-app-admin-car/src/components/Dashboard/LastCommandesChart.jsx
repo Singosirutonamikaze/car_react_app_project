@@ -1,49 +1,44 @@
-import React, { Component } from 'react';
-import { prepareCommandeBarChartData } from '../../../utils/helper';
-import CustomBarChart from '../charts/CustomBarChart';
+import React, { useMemo } from "react";
+import PropTypes from "prop-types";
+import { prepareCommandeBarChartData } from "../../utils/helper";
+import CustomBarChart from "../charts/CustomBarChart";
+import EmptyState from "../alerts/EmptyState";
 
-class LastCommandesChart extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            chartData: []
-        };
-    }
+function LastCommandesChart({ data }) {
+  const chartData = useMemo(() => {
+    const transactionsData = data?.transactions || data || [];
+    return prepareCommandeBarChartData(transactionsData);
+  }, [data]);
 
-    componentDidMount() {
-        this.prepareChartData();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.data !== this.props.data) {
-            this.prepareChartData();
-        }
-    }
-
-    prepareChartData() {
-        const { data } = this.props;
-        const transactionsData = data?.transactions || data || [];
-        
-        const result = prepareCommandeBarChartData(transactionsData);
-        this.setState({ chartData: result });
-    }
-
-    render() {
-        return (
-            <div className='card col-md-6'>
-                <div className='card-header'>
-                    <h5 className='card-title'>Dernières commandes des 30 derniers jours</h5>
-                </div>
-                <div className='card-body'>
-                    {this.state.chartData.length > 0 ? (
-                        <CustomBarChart data={this.state.chartData} />
-                    ) : (
-                        <p>Aucune donnée disponible</p>
-                    )}
-                </div>
-            </div>
-        );
-    }
+  return (
+    <div className="card col-md-6">
+      <div className="card-header">
+        <h5 className="card-title mb-6">
+          Dernières commandes des 30 derniers jours
+        </h5>
+      </div>
+      <div className="card-body">
+        {chartData.length > 0 ? (
+          <CustomBarChart data={chartData} />
+        ) : (
+          <EmptyState
+            title="Aucune donnee disponible"
+            message="Les dernieres commandes apparaitront ici."
+            compact
+          />
+        )}
+      </div>
+    </div>
+  );
 }
+
+LastCommandesChart.propTypes = {
+  data: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.object),
+    PropTypes.shape({
+      transactions: PropTypes.arrayOf(PropTypes.object),
+    }),
+  ]),
+};
 
 export default LastCommandesChart;

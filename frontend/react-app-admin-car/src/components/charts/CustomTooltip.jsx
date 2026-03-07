@@ -1,20 +1,33 @@
-import React, { Component } from 'react'
+import PropTypes from "prop-types";
 
-class CustomTooltip extends Component {
-    render() {
-        const { active, payload } = this.props;
-        if (active && payload && payload.length) {
-            return (
-                <div className='bg-white shadow-md rounded-lg p-2 border border-gray-300 '>
-                    <p className='text-xs font-semibold text-purple-800 mb-1'>{payload[0].name}</p>
-                    <p className='text-sm text-gray-600'>
-                        Total :  {" "} <span className='text-sm font-medium text-gray-900'>{payload[0].value} </span>
-                    </p>
-                </div>
-            );
-        }
-        return null;
-    }
+function CustomTooltip({ active, payload }) {
+  if (active && payload?.length) {
+    return (
+      <div className="rounded-lg border border-cyan-300/30 bg-[#07314F]/95 p-3 shadow-lg">
+        <p className="mb-1 text-xs font-semibold text-cyan-100">
+          {payload[0].name}
+        </p>
+        <p className="text-sm text-slate-200">
+          Total :{" "}
+          <span className="text-sm font-medium text-white">
+            {payload[0].value}{" "}
+          </span>
+        </p>
+      </div>
+    );
+  }
+
+  return null;
 }
+
+CustomTooltip.propTypes = {
+  active: PropTypes.bool,
+  payload: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string,
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    }),
+  ),
+};
 
 export default CustomTooltip;

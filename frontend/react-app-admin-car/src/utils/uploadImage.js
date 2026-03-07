@@ -2,7 +2,7 @@ import axiosInstance from "../service/axiosInstance";
 import { API_PATHS } from "./apiPath";
 
 class UploadImage {
-    static async uploadImage(imageFile: File) {
+    static async uploadImage(imageFile) {
         const formData = new FormData();
         formData.append("image", imageFile);
 

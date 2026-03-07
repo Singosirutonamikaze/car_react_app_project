@@ -5,6 +5,9 @@ import {
     LuLogOut,
     LuLayoutDashboard,
     LuOctagon,
+    LuReceipt,
+    LuMapPin,
+    LuHeart,
 } from 'react-icons/lu';
 
 export const SIDE_MENU_DATA = [
@@ -16,30 +19,48 @@ export const SIDE_MENU_DATA = [
     },
     {
         id: '02',
-        label: 'Liste des Clients',
+        label: 'Clients',
         icon: LuUsers,
         path: '/clients',
     },
     {
         id: '03',
-        label: 'Liste des Voitures',
+        label: 'Voitures',
         icon: LuCar,
         path: '/cars',
     },
     {
         id: '04',
-        label: 'Liste des Ventes',
+        label: 'Ventes',
         icon: LuOctagon,
         path: '/sales',
     },
     {
         id: '05',
-        label: 'Liste des Commandes',
+        label: 'Commandes',
         icon: LuClipboard,
         path: '/orders',
     },
     {
         id: '06',
+        label: 'Achats',
+        icon: LuReceipt,
+        path: '/achats',
+    },
+    {
+        id: '07',
+        label: 'Locations',
+        icon: LuMapPin,
+        path: '/locations',
+    },
+    {
+        id: '08',
+        label: 'Favoris',
+        icon: LuHeart,
+        path: '/favorites',
+    },
+    {
+        id: '09',
         label: 'Déconnexion',
         icon: LuLogOut,
         path: 'logout',

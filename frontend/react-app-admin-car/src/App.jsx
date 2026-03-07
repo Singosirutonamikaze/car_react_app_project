@@ -1,47 +1,49 @@
-import { Component } from 'react'
-import './index.css'
-import { Routes, Route } from 'react-router-dom'
-import Rout from './pages/Rout'
-import Login from './auth/Login'
-import DashboardPage from './pages/DashboardPage'
-import ClientsPage from './pages/ClientsPage'
-import CarsPage from './pages/CarsPage'
-import SalesPage from './pages/SalesPage'
-import CommandsPage from './pages/CommandsPage'
-import { ToastContainer } from 'react-toastify'
-import UserProvider from '../context/UserProvider'
+import "./index.css";
+import { Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import UserProvider from "./context/UserProvider";
+import Rout from "./pages/root/Rout";
+import Login from "./pages/auth/Login";
+import DashboardPage from "./pages/dashboard/DashboardPage";
+import ClientsPage from "./pages/clients/ClientsPage";
+import CarsPage from "./pages/cars/CarsPage";
+import SalesPage from "./pages/sales/SalesPage";
+import CommandsPage from "./pages/commands/CommandsPage";
+import AchatsPage from "./pages/achats/AchatsPage";
+import LocationsPage from "./pages/locations/LocationsPage";
+import FavoritesPage from "./pages/favorites/FavoritesPage";
+import { ROUTES } from "./utils/routes";
+import { TOASTER_OPTIONS } from "./utils/uiConfig";
 
-class App extends Component {
+const routes = [
+  { path: ROUTES.HOME, element: <Rout /> },
+  { path: ROUTES.LOGIN, element: <Login /> },
+  { path: ROUTES.DASHBOARD, element: <DashboardPage /> },
+  { path: ROUTES.CLIENTS, element: <ClientsPage /> },
+  { path: ROUTES.CARS, element: <CarsPage /> },
+  { path: ROUTES.SALES, element: <SalesPage /> },
+  { path: ROUTES.ORDERS, element: <CommandsPage /> },
+  { path: ROUTES.ACHATS, element: <AchatsPage /> },
+  { path: ROUTES.LOCATIONS, element: <LocationsPage /> },
+  { path: ROUTES.FAVORITES, element: <FavoritesPage /> },
+];
+const AppRoutes = (
+  <Routes>
+    {routes.map(({ path, element }) => (
+      <Route key={path} path={path} element={element} />
+    ))}
+  </Routes>
+);
 
-  render() {
-    return (
-      <UserProvider>
-        <div>
-          <Routes>
-            <Route path="/" element={<Rout />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/clients" element={<ClientsPage />} />
-            <Route path="/cars" element={<CarsPage />} />
-            <Route path="/sales" element={<SalesPage />} />
-            <Route path="/orders" element={<CommandsPage />} />
-          </Routes>
-          <ToastContainer
-            position="top-right"
-            autoClose={5000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="slate"
-          />
-        </div>
-      </UserProvider>
-    )
-  }
+function App() {
+  return (
+    <UserProvider>
+      <div className="min-h-screen bg-linear-to-br from-[#031827] via-[#052740] to-[#021624]">
+        {AppRoutes}
+        <Toaster position="top-right" toastOptions={TOASTER_OPTIONS} />
+      </div>
+    </UserProvider>
+  );
 }
 
-export default App
+export default App;

@@ -1,79 +1,87 @@
-import React, { Component } from 'react';
-import { LuDownload, LuRefreshCw } from 'react-icons/lu';
-import CarInfoCard from '../cards/CarInfoCard';
+import React from "react";
+import PropTypes from "prop-types";
+import { LuDownload, LuRefreshCw } from "react-icons/lu";
+import CarInfoCard from "../cards/CarInfoCard";
+import EmptyState from "../alerts/EmptyState";
 
-class CarsList extends Component {
-    constructor(props) {
-        super(props);
-        this.handleRefresh = this.handleRefresh.bind(this);
-        this.handleDownload = this.handleDownload.bind(this);
-    }
+function CarsList({
+  cars: inputCars = [],
+  onEditCar,
+  onDeleteCar,
+  onRefresh,
+  onDownload,
+}) {
+  const handleRefresh = () => {
+    onRefresh?.();
+  };
 
-    handleRefresh() {
-        console.log('Actualisation de la liste des voitures');
-        if (this.props.onRefresh) {
-            this.props.onRefresh();
-        }
-    }
+  const handleDownload = () => {
+    onDownload?.();
+  };
 
-    handleDownload() {
-        console.log('Téléchargement des données voitures');
-        if (this.props.onDownload) {
-            this.props.onDownload();
-        }
-    }
+  let cars = inputCars;
+  // Support cars as { success, data, count } or as array
+  if (!Array.isArray(cars) && cars && Array.isArray(cars.data)) {
+    cars = cars.data;
+  }
 
-    render() {
-        let { cars = [], onEditCar, onDeleteCar } = this.props;
-        // Support cars as { success, data, count } or as array
-        if (!Array.isArray(cars) && cars && Array.isArray(cars.data)) {
-            cars = cars.data;
-        }
-
-        return (
-            <div className="card bg-white rounded-lg shadow-md">
-                <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                    <h4 className="text-lg font-semibold text-gray-800">
-                        Liste des Voitures ({cars.length})
-                    </h4>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={this.handleRefresh}
-                            className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
-                        >
-                            <LuRefreshCw className="text-base" />
-                            <span className="font-medium">Actualiser</span>
-                        </button>
-                        <button
-                            onClick={this.handleDownload}
-                            className="flex items-center gap-2 px-4 py-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors"
-                        >
-                            <LuDownload className="text-base" />
-                            <span className="font-medium">Télécharger</span>
-                        </button>
-                    </div>
-                </div>
-                <div className="p-4">
-                    {Array.isArray(cars) && cars.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
-                            <p>Aucune voiture trouvée</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {Array.isArray(cars) && cars.map(car => (
-                                <CarInfoCard
-                                    key={car._id}
-                                    car={car}
-                                    onEdit={() => onEditCar && onEditCar({ ...car, _id: car._id })}
-                                    onDelete={() => onDeleteCar && onDeleteCar(car)}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-        );
-    }
+  return (
+    <div className="card rounded-lg">
+      <div className="flex items-center justify-between p-4 border-b border-cyan-300/15">
+        <h4 className="text-lg font-semibold text-slate-100">
+          Liste des Voitures ({cars.length})
+        </h4>
+        <div className="flex gap-2">
+          <button
+            onClick={handleRefresh}
+            className="flex items-center gap-2 px-4 py-2 text-cyan-200 hover:text-cyan-100 hover:bg-cyan-500/15 border border-cyan-300/25 rounded-lg transition-colors"
+          >
+            <LuRefreshCw className="text-base" />
+            <span className="font-medium">Actualiser</span>
+          </button>
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-2 px-4 py-2 text-emerald-300 hover:text-emerald-100 hover:bg-emerald-500/15 border border-emerald-300/25 rounded-lg transition-colors"
+          >
+            <LuDownload className="text-base" />
+            <span className="font-medium">Télécharger</span>
+          </button>
+        </div>
+      </div>
+      <div className="p-4">
+        {Array.isArray(cars) && cars.length === 0 ? (
+          <EmptyState
+            title="Aucune voiture disponible"
+            message="Ajoutez une voiture pour alimenter le catalogue."
+            compact
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.isArray(cars) &&
+              cars.map((car) => (
+                <CarInfoCard
+                  key={car._id}
+                  car={car}
+                  onEdit={() => onEditCar?.({ ...car, _id: car._id })}
+                  onDelete={() => onDeleteCar?.(car)}
+                />
+              ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
+
+CarsList.propTypes = {
+  cars: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.object),
+    PropTypes.shape({ data: PropTypes.arrayOf(PropTypes.object) }),
+  ]),
+  onEditCar: PropTypes.func,
+  onDeleteCar: PropTypes.func,
+  onRefresh: PropTypes.func,
+  onDownload: PropTypes.func,
+};
 
 export default CarsList;

@@ -1,36 +1,87 @@
-import React, { Children, Component } from 'react'
+import React, { useEffect, useRef } from "react";
+import PropTypes from "prop-types";
 import { VscChromeClose } from "react-icons/vsc";
 
-class Model extends Component {
-    render() {
-        const { isOpen, onClose, title, children } = this.props;
-        if (!isOpen) {
-            return null;
-        }
-        return (
-            <div className='fixed top-0 right-0 left-0 z-50 flex items-center justify-center h-screen w-full bg-[#5c565693] overflow-y-auto'>
-                <div className='relative p-4 w-full max-w-2xl max-h-full'>
-                    <div className='relative bg-[#010B18]/70 backdrop-blur-xl rounded-lg shadow-sm'>
-                        <div className='flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-200 border-gray-200'>
-                            <h3 className='text-lg font-medium text-gray-100'>
-                                {title}
-                            </h3>
-                            <button
-                                type='button'
-                                onClick={onClose}
-                                className='text-gray-900 bg-transparent h-14 w-14 hover:bg-[#8329f13d] rounded-lg text-sm p-1.5 ml-auto inline-flex justify-center items-center dark:hover:bg-[#8329f13d] dark:hover:text-white font-bold'
-                            >
-                                <VscChromeClose className='text-gray-700' />
-                            </button>
-                        </div>
-                        <div className='p-4 md:p-5 space-y-4'>
-                            {children}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
+function Model({ isOpen, onClose, title, children }) {
+  const panelRef = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return undefined;
     }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        onClose?.();
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (isOpen && panelRef.current) {
+      panelRef.current.focus();
+    }
+  }, [isOpen]);
+
+  if (!isOpen) {
+    return null;
+  }
+
+  return (
+    <dialog
+      open
+      className="fixed inset-0 z-70 m-0 flex h-screen w-screen max-h-none max-w-none items-end justify-center border-none bg-[#010B18]/68 p-3 backdrop-blur-sm sm:items-center sm:p-4"
+      aria-label={title}
+    >
+      <button
+        type="button"
+        className="absolute inset-0 h-full w-full cursor-default"
+        onClick={onClose}
+        aria-label="Fermer le modal"
+      />
+
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        className="relative z-10 w-full max-w-2xl overflow-hidden rounded-xl border border-cyan-300/30 bg-[#031B2E]/90 shadow-2xl shadow-black/45 outline-none"
+      >
+        <div className="flex items-center justify-between border-b border-cyan-300/20 px-4 py-3 sm:px-5 sm:py-4">
+          <h3 className="pr-4 text-base font-semibold text-slate-100 sm:text-lg">
+            {title}
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-cyan-300/25 bg-[#0A2A42]/65 text-cyan-100 transition-colors duration-200 hover:border-cyan-300/60 hover:bg-cyan-500/20"
+            aria-label="Fermer le modal"
+          >
+            <VscChromeClose className="text-lg" />
+          </button>
+        </div>
+
+        <div className="max-h-[calc(100dvh-8.5rem)] overflow-y-auto px-4 py-4 sm:px-5 sm:py-5">
+          <div className="space-y-4">{children}</div>
+        </div>
+      </div>
+    </dialog>
+  );
 }
+
+Model.propTypes = {
+  isOpen: PropTypes.bool,
+  onClose: PropTypes.func,
+  title: PropTypes.string,
+  children: PropTypes.node,
+};
 
 export default Model;

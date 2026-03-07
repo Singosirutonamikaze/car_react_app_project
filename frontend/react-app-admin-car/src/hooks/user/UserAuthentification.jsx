@@ -1,25 +1,26 @@
-'use client';
+"use client";
 
 import { useContext, useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import { Navigate } from "react-router-dom";
-import UserContext from "../context/userContext";
+import UserContext from "../../context/userContext";
 
 export function UserAuthentication({ children }) {
   const { user, updateUser, clearUser } = useContext(UserContext);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
+    const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
 
     if (token && storedUser) {
       try {
         const userData = JSON.parse(storedUser);
         if (!user) updateUser(userData);
       } catch (error) {
-        console.error('Erreur parsing user data:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        console.error("Erreur parsing user data:", error);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
         clearUser();
       }
     } else {
@@ -46,3 +47,7 @@ export function UserAuthentication({ children }) {
 
   return children;
 }
+
+UserAuthentication.propTypes = {
+  children: PropTypes.node.isRequired,
+};

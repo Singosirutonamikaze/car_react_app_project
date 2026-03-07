@@ -1,114 +1,122 @@
-import React, { Component } from 'react';
-import Input from '../inputs/Input';
-import ProfileModel from '../models/ProfileModel';
+import React, { useState } from "react";
+import PropTypes from "prop-types";
+import Input from "../inputs/Input";
+import ProfileModel from "../models/ProfileModel";
+import { fileToDataUrl } from "../../utils/imageUrl";
 
-class AddClientsForm extends Component {
-  resetForm() {
-    this.setState({
-      name: '',
-      surname: '',
-      email: '',
-      password: '',
-      profileImageUrl: '',
-      profileImageFile: null
-    });
-  }
+const initialState = {
+  name: "",
+  surname: "",
+  email: "",
+  password: "",
+  profileImageUrl: "",
+  profileImageFile: null,
+};
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      name: '',
-      surname: '',
-      email: '',
-      password: '',
-      profileImageUrl: '',
-      profileImageFile: null
-    };
-  }
+function AddClientsForm({ onAddClient }) {
+  const [formData, setFormData] = useState(initialState);
 
-  handleChange = (e) => {
-    this.setState({ [e.target.name]: e.target.value });
+  const resetForm = () => {
+    setFormData(initialState);
   };
 
-  handleProfileImageChange = (file) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleProfileImageChange = async (file) => {
     if (file) {
-      this.setState({
+      const imageDataUrl =
+        typeof file === "string" ? file : await fileToDataUrl(file);
+
+      setFormData((prev) => ({
+        ...prev,
         profileImageFile: file,
-        profileImageUrl: typeof file === 'string' ? file : URL.createObjectURL(file)
-      });
+        profileImageUrl: imageDataUrl,
+      }));
     } else {
-      this.setState({ profileImageFile: null, profileImageUrl: '' });
+      setFormData((prev) => ({
+        ...prev,
+        profileImageFile: null,
+        profileImageUrl: "",
+      }));
     }
   };
 
-  handleSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (this.props.onAddClient) {
-      this.props.onAddClient({
-        name: this.state.name,
-        surname: this.state.surname,
-        email: this.state.email,
-        password: this.state.password,
-        profileImageUrl: this.state.profileImageUrl || null,
-        profileImageFile: this.state.profileImageFile || null
-      }, () => this.resetForm());
+    if (onAddClient) {
+      onAddClient(
+        {
+          name: formData.name,
+          surname: formData.surname,
+          email: formData.email,
+          password: formData.password,
+          profileImageUrl: formData.profileImageUrl || null,
+          profileImageFile: formData.profileImageFile || null,
+        },
+        resetForm,
+      );
     }
   };
 
-  render() {
-    return (
-      <form onSubmit={this.handleSubmit} className="flex flex-col gap-4">
-        <ProfileModel onChange={this.handleProfileImageChange} />
-        
-        <Input
-          type="text"
-          name="name"
-          label="Nom"
-          placeholder="Nom"
-          value={this.state.name}
-          onChange={this.handleChange}
-          required
-        />
-        
-        <Input
-          type="text"
-          name="surname"
-          label="Prénom"
-          placeholder="Prénom"
-          value={this.state.surname}
-          onChange={this.handleChange}
-          required
-        />
-        
-        <Input
-          type="email"
-          name="email"
-          label="Email"
-          placeholder="Email"
-          value={this.state.email}
-          onChange={this.handleChange}
-          required
-        />
-        
-        <Input
-          type="password"
-          name="password"
-          label="Mot de passe"
-          placeholder="Mot de passe"
-          value={this.state.password}
-          onChange={this.handleChange}
-          required
-        />
-        
-        <button
-          type="submit"
-          className="bg-violet-500 hover:bg-violet-600 text-white py-2 px-4 rounded"
-        >
-          Ajouter
-        </button>
-      </form>
-    );
-  }
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <ProfileModel
+        onChange={handleProfileImageChange}
+        initialImage={formData.profileImageUrl}
+      />
+
+      <Input
+        type="text"
+        name="name"
+        label="Nom"
+        placeholder="Nom"
+        value={formData.name}
+        onChange={handleChange}
+        required
+      />
+
+      <Input
+        type="text"
+        name="surname"
+        label="Prénom"
+        placeholder="Prénom"
+        value={formData.surname}
+        onChange={handleChange}
+        required
+      />
+
+      <Input
+        type="email"
+        name="email"
+        label="Email"
+        placeholder="Email"
+        value={formData.email}
+        onChange={handleChange}
+        required
+      />
+
+      <Input
+        type="password"
+        name="password"
+        label="Mot de passe"
+        placeholder="Mot de passe"
+        value={formData.password}
+        onChange={handleChange}
+        required
+      />
+
+      <button type="submit" className="py-2 px-4 rounded font-medium">
+        Ajouter
+      </button>
+    </form>
+  );
 }
+
+AddClientsForm.propTypes = {
+  onAddClient: PropTypes.func,
+};
 
 export default AddClientsForm;
