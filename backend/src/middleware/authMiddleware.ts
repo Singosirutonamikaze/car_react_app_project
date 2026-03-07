@@ -82,3 +82,51 @@ export const adminProtect = async (req: AuthenticatedRequest, res: Response, nex
     });
   }
 };
+
+export const userOrAdminProtect = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      res.status(401).json({
+        success: false,
+        message: 'Token d\'authentification requis'
+      });
+      return;
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || '') as any;
+
+    const [user, admin] = await Promise.all([
+      UserModel.findById(decoded.id).select('-password'),
+      Admin.findById(decoded.id).select('-password')
+    ]);
+
+    if (user) {
+      req.user = { id: user._id.toString(), email: user.email };
+      next();
+      return;
+    }
+
+    if (admin && admin.isActive) {
+      req.admin = { id: admin._id.toString(), email: admin.email };
+      next();
+      return;
+    }
+
+    res.status(401).json({
+      success: false,
+      message: 'Utilisateur ou admin non trouvé'
+    });
+  } catch (error) {
+    console.error('Erreur d\'authentification utilisateur/admin:', error);
+    res.status(401).json({
+      success: false,
+      message: 'Token invalide'
+    });
+  }
+};

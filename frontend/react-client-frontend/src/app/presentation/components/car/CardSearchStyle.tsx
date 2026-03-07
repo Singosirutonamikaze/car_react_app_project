@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import type { Car } from "../../../../shared/types/car";
-import { carService } from "../../../../shared/services/carService";
+import { carService } from "../../../../shared/services/car";
 import ROUTES from "../../../../router";
 import { FiSearch, FiFilter, FiX } from "react-icons/fi";
 import Loading from "../../../../shared/components/ui/Loading";
@@ -65,7 +65,9 @@ function CardSearchStyle() {
     setVilleFilter("");
   };
 
-  const uniqueVilles = [...new Set(cars.map(car => car.ville))].sort();
+  const uniqueVilles = [...new Set(cars.map((car) => car.ville))].sort((a, b) =>
+    a.localeCompare(b, "fr", { sensitivity: "base" }),
+  );
 
   if (loading) {
     return (
@@ -132,10 +134,12 @@ function CardSearchStyle() {
         {showFilters && (
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-blue-100 mb-2">
+              <label htmlFor="ville-filter" className="block text-sm font-medium text-blue-100 mb-2">
                 Filtrer par ville
               </label>
               <select
+                id="ville-filter"
+                title="Filtrer les voitures par ville"
                 value={villeFilter}
                 onChange={(e) => setVilleFilter(e.target.value)}
                 className="w-full px-4 py-3 bg-blue-800/40 border border-blue-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"

@@ -1,9 +1,9 @@
 // src/shared/contexts/AuthContext.tsx
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Client } from '../types/client';
 import { AuthContext, type AuthContextType } from './AuthContext';
-import clientService from '../services/clientService';
-import authService from '../services/authService';
+import clientService from '../services/client';
+import authService from '../services/auth';
 
 interface AuthProviderProps {
     children: ReactNode;
@@ -51,14 +51,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(null);
     };
 
-    const value: AuthContextType = {
-        user,
-        login,
-        register,
-        logout,
-        loading,
-        isAuthenticated,
-    };
+    const value: AuthContextType = useMemo(
+        () => ({
+            user,
+            login,
+            register,
+            logout,
+            loading,
+            isAuthenticated,
+        }),
+        [user, loading, isAuthenticated],
+    );
 
     return (
         <AuthContext.Provider value={value}>

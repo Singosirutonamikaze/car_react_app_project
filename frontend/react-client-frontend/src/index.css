@@ -1,1 +1,171 @@
 @import 'tailwindcss';
+:root {
+  --client-bg-from: #1e3a8a;
+  --client-bg-via: #1d4ed8;
+  --client-bg-to: #1e40af;
+  --client-surface: rgba(15, 23, 42, 0.45);
+  --client-surface-strong: rgba(15, 23, 42, 0.72);
+  --client-border: rgba(103, 232, 249, 0.24);
+  --client-accent: rgba(8, 145, 178, 0.45);
+  --client-accent-strong: rgba(6, 182, 212, 0.9);
+  --client-text-primary: #eff6ff;
+  --client-text-secondary: rgba(219, 234, 254, 0.86);
+}
+
+.client-layout-bg {
+  background-color: var(--client-bg-from);
+}
+
+.client-surface {
+  background-color: var(--client-surface);
+  border-color: var(--client-border);
+}
+
+.client-surface-strong {
+  background-color: var(--client-surface-strong);
+  border-color: var(--client-border);
+}
+
+.client-theme-text-primary {
+  color: var(--client-text-primary);
+}
+
+.client-theme-text-secondary {
+  color: var(--client-text-secondary);
+}
+
+.client-accent-bg {
+  background-color: var(--client-accent);
+}
+
+.client-accent-bg-strong {
+  background-color: var(--client-accent-strong);
+}
+
+.client-sidebar-gradient {
+  background-color: var(--client-surface-strong);
+  border-right-color: var(--client-border);
+}
+
+.client-border-b {
+  border-bottom-color: var(--client-border);
+}
+
+.client-border-t {
+  border-top-color: var(--client-border);
+}
+
+.client-active-item {
+  background-color: var(--client-accent-strong);
+  color: var(--client-text-primary);
+}
+
+.client-inactive-item {
+  color: var(--client-text-secondary);
+}
+
+.client-theme-preview-ocean {
+  background-image: linear-gradient(to right, #0f172a, #1d4ed8);
+}
+
+.client-theme-preview-emerald {
+  background-image: linear-gradient(to right, #052e16, #064e3b);
+}
+
+.client-theme-preview-sunset {
+  background-image: linear-gradient(to right, #7c2d12, #7f1d1d);
+}
+
+.client-theme-preview-graphite {
+  background-image: linear-gradient(to right, #111827, #0b1120);
+}
+
+.client-theme-card {
+  background-color: var(--client-surface-strong);
+  border-color: var(--client-border);
+}
+
+.client-theme-card-soft {
+  background-color: var(--client-surface);
+  border-color: var(--client-border);
+}
+
+.client-theme-button {
+  background-color: var(--client-accent-strong);
+  color: var(--client-text-primary);
+  border-color: var(--client-border);
+}
+
+.client-theme-button:hover {
+  background-color: var(--client-accent-strong);
+}
+
+.client-theme-outline-button {
+  color: var(--client-text-primary);
+  border-color: var(--client-border);
+  background-color: var(--client-surface);
+}
+
+.client-theme-outline-button:hover {
+  background-color: var(--client-accent);
+}
+
+.client-theme-chip {
+  background-color: var(--client-surface);
+  border-color: var(--client-border);
+  color: var(--client-text-secondary);
+}
+
+.client-theme-input {
+  background-color: var(--client-surface-strong);
+  border-color: var(--client-border);
+  color: var(--client-text-primary);
+}
+
+.client-theme-input::placeholder {
+  color: var(--client-text-secondary);
+}
+
+.client-theme-label {
+  color: var(--client-text-secondary);
+}
+
+.client-theme-icon-soft {
+  background-color: var(--client-accent);
+  color: var(--client-text-primary);
+  border-color: var(--client-border);
+}
+
+.client-theme-accent-text {
+  color: var(--client-text-primary);
+}
+
+.client-theme-value {
+  color: var(--client-text-primary);
+}
+
+.client-theme-progress {
+  background-color: var(--client-accent-strong);
+}
+
+.client-theme-nav-link {
+  color: var(--client-text-primary);
+}
+
+.client-theme-nav-link:hover {
+  background-color: var(--client-accent);
+}
+
+.client-theme-spinner {
+  border-color: var(--client-accent-strong);
+}
+
+html, body, #root {
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar, body::-webkit-scrollbar, #root::-webkit-scrollbar, *::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}

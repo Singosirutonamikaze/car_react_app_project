@@ -4,6 +4,23 @@ import CarModel from '../models/Car';
 import { ICar } from '../interfaces/ICar';
 import PDFDocument from "pdfkit";
 
+const MAX_IMAGE_SIZE_BYTES = 1 * 1024 * 1024;
+
+function getDataUrlSizeInBytes(value?: unknown): number {
+  if (typeof value !== 'string' || !value.startsWith('data:')) {
+    return 0;
+  }
+
+  const base64Part = value.split(',')[1] ?? '';
+  let padding = 0;
+  if (base64Part.endsWith('==')) {
+    padding = 2;
+  } else if (base64Part.endsWith('=')) {
+    padding = 1;
+  }
+  return Math.max(0, Math.floor((base64Part.length * 3) / 4) - padding);
+}
+
 export const getAllCars = async (req: Request, res: Response): Promise<void> => {
   try {
     const { disponible, marque, ville, minPrice, maxPrice } = req.query;
@@ -66,6 +83,14 @@ export const createCar = async (req: Request, res: Response): Promise<void> => {
   try {
     const carData = req.body;
 
+    if (getDataUrlSizeInBytes(carData?.image) > MAX_IMAGE_SIZE_BYTES) {
+      res.status(413).json({
+        success: false,
+        message: 'Image trop lourde. Taille maximale autorisee: 1 Mo.'
+      });
+      return;
+    }
+
     const newCar = new CarModel(carData);
     await newCar.save();
 
@@ -103,6 +128,14 @@ export const updateCar = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const updates = req.body;
+
+    if (getDataUrlSizeInBytes(updates?.image) > MAX_IMAGE_SIZE_BYTES) {
+      res.status(413).json({
+        success: false,
+        message: 'Image trop lourde. Taille maximale autorisee: 1 Mo.'
+      });
+      return;
+    }
 
     const car = await CarModel.findByIdAndUpdate(
       id,

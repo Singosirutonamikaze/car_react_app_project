@@ -11,6 +11,7 @@ const ROUTES = {
     CART: "/client/panier",
     PROFILE: "/client/profil",
     ORDERS: "/client/commandes",
+    STATS: "/client/statistiques",
     CAR_DETAILS: "/voitures/:id",
     PARAMETRES: "/client/parametres",
     LOGOUT: "/logout",
@@ -18,4 +19,3 @@ const ROUTES = {
 };
 
 export default ROUTES;
-  

@@ -2,6 +2,9 @@ import { Request, Response } from 'express';
 import { Types } from 'mongoose';
 import CommandeModel from '../models/Commande';
 import { IAdresseLivraison } from '../interfaces/ICommande';
+import UserModel from '../models/Client';
+import CarModel from '../models/Car';
+import { AuthenticatedRequest } from '../middleware/authMiddleware';
 
 interface PopulatedClient {
     _id: Types.ObjectId;
@@ -57,7 +60,7 @@ export const getAllCommande = async (req: Request, res: Response): Promise<void>
     }
 };
 
-export const addCommande = async (req: Request, res: Response): Promise<void> => {
+export const addCommande = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const {
             client,
@@ -71,8 +74,10 @@ export const addCommande = async (req: Request, res: Response): Promise<void> =>
             notes
         } = req.body;
 
+        const clientId = req.user?.id || client;
+
         // Validation des données requises
-        if (!client || !voiture || !montant || !modePaiement || !adresseLivraison) {
+        if (!clientId || !voiture || !montant || !modePaiement || !adresseLivraison) {
             res.status(400).json({
                 success: false,
                 message: 'Tous les champs obligatoires doivent être remplis'
@@ -80,8 +85,29 @@ export const addCommande = async (req: Request, res: Response): Promise<void> =>
             return;
         }
 
+        const [clientExists, carExists] = await Promise.all([
+            UserModel.findById(clientId).select('_id'),
+            CarModel.findById(voiture).select('_id')
+        ]);
+
+        if (!clientExists) {
+            res.status(404).json({
+                success: false,
+                message: 'Client introuvable'
+            });
+            return;
+        }
+
+        if (!carExists) {
+            res.status(404).json({
+                success: false,
+                message: 'Voiture introuvable'
+            });
+            return;
+        }
+
         const nouvelleCommande = new CommandeModel({
-            client,
+            client: clientId,
             voiture,
             statut: statut || 'En attente',
             montant,

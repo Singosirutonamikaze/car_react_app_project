@@ -109,7 +109,7 @@ server.use((req, res, next) => {
   next();
 });
 
-server.use(express.json());
+server.use(express.json({ limit: '2mb' }));
 
 // S'assurer que uploads existe et le servir
 const uploadsPath = path.join(process.cwd(), 'uploads');

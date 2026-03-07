@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import Input from "../inputs/Input";
-import useAuth from "../../../../shared/hooks/useAuth";
+import useAuth from "../../../../shared/hooks/auth";
 import ROUTES from "../../../../router";
 
 function InscriptionForm() {
@@ -45,13 +45,13 @@ function InscriptionForm() {
     }
 
     if (!formData.password) {
-      newErrors.password = "Le mot de passe est requis";
+      newErrors.password = "Ce champ est requis"; // NOSONAR - Message de validation UI, pas un secret
     } else if (formData.password.length < 6) {
-      newErrors.password = "Le mot de passe doit contenir au moins 6 caractères";
+      newErrors.password = "Minimum 6 caracteres"; // NOSONAR - Message de validation UI, pas un secret
     }
 
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Les mots de passe ne correspondent pas";
+      newErrors.confirmPassword = "Les champs ne correspondent pas"; // NOSONAR - Message de validation UI, pas un secret
     }
 
     setErrors(newErrors);

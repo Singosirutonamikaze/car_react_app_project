@@ -2,6 +2,23 @@ import { Request, Response } from 'express';
 import UserModel from '../models/Client';
 import generateToken from '../utils/generateToken';
 
+const MAX_IMAGE_SIZE_BYTES = 1 * 1024 * 1024;
+
+function getDataUrlSizeInBytes(value?: unknown): number {
+    if (typeof value !== 'string' || !value.startsWith('data:')) {
+        return 0;
+    }
+
+    const base64Part = value.split(',')[1] ?? '';
+    let padding = 0;
+    if (base64Part.endsWith('==')) {
+        padding = 2;
+    } else if (base64Part.endsWith('=')) {
+        padding = 1;
+    }
+    return Math.max(0, Math.floor((base64Part.length * 3) / 4) - padding);
+}
+
 export const getClients = async (_req: Request, res: Response): Promise<void> => {
     try {
         const clients = await UserModel.find().select('-password');
@@ -14,7 +31,7 @@ export const getClients = async (_req: Request, res: Response): Promise<void> =>
 
 export const createClient = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { name, surname, email, password } = req.body;
+        const { name, surname, email, password, profileImageUrl } = req.body;
 
         if (!name || !surname || !email || !password) {
             res.status(400).json({ message: "S'il vous plaît, remplissez tous les champs." });
@@ -27,11 +44,17 @@ export const createClient = async (req: Request, res: Response): Promise<void> =
             return;
         }
 
+        if (getDataUrlSizeInBytes(profileImageUrl) > MAX_IMAGE_SIZE_BYTES) {
+            res.status(413).json({ message: 'Image trop lourde. Taille maximale autorisee: 1 Mo.' });
+            return;
+        }
+
         const newUser = new UserModel({
             name,
             surname,
             email,
             password,
+            profileImageUrl: profileImageUrl || null,
         });
 
         await newUser.save();
@@ -68,6 +91,13 @@ export const updateClient = async (req: Request, res: Response): Promise<void> =
 
         if (updates.password === '' || updates.password === undefined) {
             delete updates.password;
+        }
+
+        if (getDataUrlSizeInBytes(updates.profileImageUrl) > MAX_IMAGE_SIZE_BYTES) {
+            res.status(413).json({
+                message: 'Image trop lourde. Taille maximale autorisee: 1 Mo.'
+            });
+            return;
         }
 
         const client = await UserModel.findByIdAndUpdate(

@@ -24,7 +24,7 @@ const adresseLivraisonSchema = new mongoose.Schema({
   },
   pays: {
     type: String,
-    default: 'France',
+    default: 'TOGO',
     trim: true
   }
 });

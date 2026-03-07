@@ -1,5 +1,7 @@
 import { API_BASE_URL } from "./apiPath";
 
+export const MAX_IMAGE_SIZE_BYTES = 1 * 1024 * 1024;
+
 export function resolveImageUrl(value) {
   if (!value || typeof value !== "string") {
     return "";
@@ -37,6 +39,11 @@ export function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
     if (!file) {
       resolve("");
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      reject(new Error("Image trop lourde. Taille maximale autorisee: 1 Mo."));
       return;
     }
 

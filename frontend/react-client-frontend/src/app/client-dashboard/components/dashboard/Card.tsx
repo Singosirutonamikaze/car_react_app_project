@@ -2,20 +2,20 @@ import type { ReactNode } from 'react';
 import { FiTrendingUp, FiTrendingDown } from 'react-icons/fi';
 
 interface CardProps {
-    title: string;
-    value: string;
-    icon: ReactNode;
-    gradient: string;
-    subtitle?: string;
-    trend?: {
-        value: string;
-        isPositive: boolean;
+    readonly title: string;
+    readonly value: string;
+    readonly icon: ReactNode;
+    readonly gradient: string;
+    readonly subtitle?: string;
+    readonly trend?: {
+        readonly value: string;
+        readonly isPositive: boolean;
     };
 }
 
-function Card({ title, value, icon, gradient, subtitle, trend }: CardProps) {
+function Card({ title, value, icon, gradient, subtitle, trend }: Readonly<CardProps>) {
     return (
-        <div className={`relative p-6 rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105 ${gradient}`}>
+        <div className={`relative p-6 rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105 ${gradient}`}>
             <div className="absolute inset-0 opacity-10">
                 <div className="absolute -right-4 -top-4 text-6xl opacity-20">
                     {icon}

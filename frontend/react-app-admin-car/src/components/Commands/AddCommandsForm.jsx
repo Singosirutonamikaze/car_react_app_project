@@ -206,7 +206,7 @@ function AddCommandForm({ cars = [], clients = [], onAddCommand }) {
               value={formData.adresseLivraison.ville}
               onChange={handleAddressChange}
               className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/30 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50"
-              placeholder="Paris"
+              placeholder="Lome"
               required
             />
           </div>
@@ -227,7 +227,7 @@ function AddCommandForm({ cars = [], clients = [], onAddCommand }) {
               pattern="[0-9]{5}"
               maxLength="5"
               className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/30 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50"
-              placeholder="75001"
+              placeholder="00000"
               required
             />
           </div>
@@ -246,7 +246,7 @@ function AddCommandForm({ cars = [], clients = [], onAddCommand }) {
               value={formData.adresseLivraison.pays}
               onChange={handleAddressChange}
               className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/30 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50"
-              placeholder="France"
+              placeholder="TOGO"
             />
           </div>
         </div>

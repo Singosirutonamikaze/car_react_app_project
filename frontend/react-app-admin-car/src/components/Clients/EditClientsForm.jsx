@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
+import toast from "react-hot-toast";
 import Input from "../inputs/Input";
 import ProfileModel from "../models/ProfileModel";
 import { fileToDataUrl, resolveImageUrl } from "../../utils/imageUrl";
@@ -30,16 +31,29 @@ function EditClientsForm({ client, onSave, onCancel }) {
   };
 
   const handleProfileImageChange = async (file) => {
-    if (file) {
-      const imageDataUrl =
-        typeof file === "string" ? file : await fileToDataUrl(file);
+    try {
+      if (file) {
+        const imageDataUrl =
+          typeof file === "string" ? file : await fileToDataUrl(file);
 
-      setFormData((prev) => ({
-        ...prev,
-        profileImageFile: file,
-        profileImageUrl: imageDataUrl,
-      }));
-    } else {
+        setFormData((prev) => ({
+          ...prev,
+          profileImageFile: file,
+          profileImageUrl: imageDataUrl,
+        }));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          profileImageFile: null,
+          profileImageUrl: "",
+        }));
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Impossible de charger l'image.";
+      toast.error(message);
       setFormData((prev) => ({
         ...prev,
         profileImageFile: null,

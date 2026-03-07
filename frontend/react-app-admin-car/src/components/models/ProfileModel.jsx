@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
+import toast from "react-hot-toast";
 import { LuTrash, LuUpload, LuUser } from "react-icons/lu";
-import { resolveImageUrl } from "../../utils/imageUrl";
+import { MAX_IMAGE_SIZE_BYTES, resolveImageUrl } from "../../utils/imageUrl";
 
 const ProfileModel = (props) => {
   const inputRef = useRef(null);
@@ -26,6 +27,12 @@ const ProfileModel = (props) => {
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
+      if (file.size > MAX_IMAGE_SIZE_BYTES) {
+        toast.error("Image trop lourde. Taille maximale autorisee: 1 Mo.");
+        event.target.value = null;
+        return;
+      }
+
       setFile(file);
 
       // Générer un aperçu local uniquement pour l'UI.

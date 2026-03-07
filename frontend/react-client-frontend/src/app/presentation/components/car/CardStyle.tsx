@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import type { Car } from "../../../../shared/types/car";
-import { carService } from "../../../../shared/services/carService";
+import { carService } from "../../../../shared/services/car";
 import ROUTES from "../../../../router";
 import { FiAlertOctagon } from "react-icons/fi";
 import Loading from "../../../../shared/components/ui/Loading";
@@ -36,7 +36,7 @@ function CardStyle() {
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-96">
-               <Loading />
+                <Loading />
             </div>
         );
     }
@@ -142,8 +142,8 @@ function CardStyle() {
                                     onClick={handleCommanderClick}
                                     disabled={!car.disponible}
                                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${car.disponible
-                                            ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white cursor-pointer"
-                                            : "bg-gray-600 text-gray-400 cursor-not-allowed"
+                                        ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white cursor-pointer"
+                                        : "bg-gray-600 text-gray-400 cursor-not-allowed"
                                         }`}
                                 >
                                     {car.disponible ? "Commander" : "Indisponible"}

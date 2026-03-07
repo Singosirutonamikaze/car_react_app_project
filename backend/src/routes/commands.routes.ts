@@ -6,7 +6,7 @@ import {
     deleteCommande,
     downloadsCommande
 } from '../controllers/commandsController';
-import { adminProtect, userProtect } from '../middleware/authMiddleware';
+import { adminProtect, userProtect, userOrAdminProtect } from '../middleware/authMiddleware';
 import { body, param, validationResult } from 'express-validator';
 
 const router = express.Router();
@@ -26,7 +26,7 @@ const handleValidationErrors = (req: Request, res: Response, next: NextFunction)
 
 // Validation pour la création de commande
 const commandeValidation = [
-    body('client').isMongoId().withMessage('ID client invalide'),
+    body('client').optional().isMongoId().withMessage('ID client invalide'),
     body('voiture').isMongoId().withMessage('ID voiture invalide'),
     body('montant').isNumeric().withMessage('Montant doit être un nombre'),
     body('fraisLivraison').optional().isNumeric().withMessage('Frais de livraison doit être un nombre'),
@@ -147,7 +147,7 @@ router.get('/admin/getAll', adminProtect, getAllCommande);
  */
 
 router.post('/add',
-    userProtect,
+    userOrAdminProtect,
     commandeValidation,
     handleValidationErrors,
     addCommande

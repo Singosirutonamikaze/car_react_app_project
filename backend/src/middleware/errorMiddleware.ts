@@ -1,6 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
 
 export const errorHandler = (error: Error, req: Request, res: Response, next: NextFunction) => {
+  // Payload JSON trop volumineux
+  if ((error as any).type === 'entity.too.large') {
+    return res.status(413).json({
+      success: false,
+      message: 'Image trop lourde. Taille maximale autorisee: 1 Mo.'
+    });
+  }
+
+  // Erreur Multer: fichier trop volumineux
+  if ((error as any).code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({
+      success: false,
+      message: 'Image trop lourde. Taille maximale autorisee: 1 Mo.'
+    });
+  }
+
   // Erreur de validation Mongoose
   if (error.name === 'ValidationError' && (error as any).errors) {
     const errors = Object.values((error as any).errors).map((err: any) => ({
