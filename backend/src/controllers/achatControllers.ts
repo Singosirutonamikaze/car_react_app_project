@@ -9,6 +9,27 @@ interface AuthenticatedRequest extends Request {
         id: string;
     };
 }
+
+function buildDateRangeFilter(from?: string, to?: string): { $gte?: Date; $lte?: Date } | null {
+    const dateFilter: { $gte?: Date; $lte?: Date } = {};
+
+    if (from) {
+        const fromDate = new Date(from);
+        if (!Number.isNaN(fromDate.getTime())) {
+            dateFilter.$gte = fromDate;
+        }
+    }
+
+    if (to) {
+        const toDate = new Date(to);
+        if (!Number.isNaN(toDate.getTime())) {
+            toDate.setHours(23, 59, 59, 999);
+            dateFilter.$lte = toDate;
+        }
+    }
+
+    return Object.keys(dateFilter).length > 0 ? dateFilter : null;
+}
 export const getUserAchats = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const userId = req.user?.id;
@@ -281,5 +302,216 @@ export const addEvaluationAchat = async (req: AuthenticatedRequest, res: Respons
             message: "Erreur interne du serveur.",
             success: false
         });
+    }
+};
+
+export const getAllAchatsAdmin = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const authReq = req as AuthenticatedRequest;
+        const adminId = authReq.admin?.id;
+
+        if (!adminId) {
+            res.status(401).json({ message: 'Non autorisé.', success: false });
+            return;
+        }
+
+        const page = Number.parseInt(req.query.page as string) || 1;
+        const limit = Number.parseInt(req.query.limit as string) || 20;
+        const statut = req.query.statut as string | undefined;
+        const from = req.query.from as string | undefined;
+        const to = req.query.to as string | undefined;
+        const skip = (page - 1) * limit;
+
+        const filter: Record<string, unknown> = {};
+        if (statut) filter.statut = statut;
+
+        const dateFilter = buildDateRangeFilter(from, to);
+        if (dateFilter) filter.dateAchat = dateFilter;
+
+        const [achats, totalCount] = await Promise.all([
+            AchatModel.find(filter)
+                .populate('voiture', 'marque modelCar year price image')
+                .populate({
+                    path: 'commande',
+                    select: 'statut montantTotal dateCommande client',
+                    populate: {
+                        path: 'client',
+                        select: 'name surname email'
+                    }
+                })
+                .sort({ dateAchat: -1 })
+                .skip(skip)
+                .limit(limit),
+            AchatModel.countDocuments(filter)
+        ]);
+
+        res.status(200).json({
+            success: true,
+            achats,
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(totalCount / limit),
+                totalCount,
+                hasNextPage: page * limit < totalCount,
+                hasPrevPage: page > 1
+            }
+        });
+    } catch (error) {
+        console.error('Erreur getAllAchatsAdmin :', error);
+        res.status(500).json({
+            message: 'Erreur interne du serveur.',
+            success: false
+        });
+    }
+};
+
+export const getUserAchatsChartsByDate = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            res.status(401).json({ message: 'Non autorisé.', success: false });
+            return;
+        }
+
+        const from = req.query.from as string | undefined;
+        const to = req.query.to as string | undefined;
+
+        const user = await UserModel.findById(userId).select('achats');
+        if (!user) {
+            res.status(404).json({ message: 'Utilisateur non trouvé.', success: false });
+            return;
+        }
+
+        const match: Record<string, unknown> = {
+            _id: { $in: user.achats || [] }
+        };
+
+        const dateFilter = buildDateRangeFilter(from, to);
+        if (dateFilter) match.dateAchat = dateFilter;
+
+        const points = await AchatModel.aggregate([
+            { $match: match },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: {
+                            format: '%Y-%m-%d',
+                            date: '$dateAchat'
+                        }
+                    },
+                    totalAchats: { $sum: 1 },
+                    totalMontant: { $sum: '$prixAchat' }
+                }
+            },
+            { $sort: { _id: 1 } },
+            {
+                $project: {
+                    _id: 0,
+                    date: '$_id',
+                    totalAchats: 1,
+                    totalMontant: 1
+                }
+            }
+        ]);
+
+        res.status(200).json({ success: true, points });
+    } catch (error) {
+        console.error('Erreur getUserAchatsChartsByDate :', error);
+        res.status(500).json({ message: 'Erreur interne du serveur.', success: false });
+    }
+};
+
+export const getAdminAchatsChartsByDate = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const authReq = req as AuthenticatedRequest;
+        if (!authReq.admin?.id) {
+            res.status(401).json({ message: 'Non autorisé.', success: false });
+            return;
+        }
+
+        const from = req.query.from as string | undefined;
+        const to = req.query.to as string | undefined;
+        const statut = req.query.statut as string | undefined;
+
+        const match: Record<string, unknown> = {};
+        if (statut) match.statut = statut;
+
+        const dateFilter = buildDateRangeFilter(from, to);
+        if (dateFilter) match.dateAchat = dateFilter;
+
+        const points = await AchatModel.aggregate([
+            { $match: match },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: {
+                            format: '%Y-%m-%d',
+                            date: '$dateAchat'
+                        }
+                    },
+                    totalAchats: { $sum: 1 },
+                    totalMontant: { $sum: '$prixAchat' }
+                }
+            },
+            { $sort: { _id: 1 } },
+            {
+                $project: {
+                    _id: 0,
+                    date: '$_id',
+                    totalAchats: 1,
+                    totalMontant: 1
+                }
+            }
+        ]);
+
+        res.status(200).json({ success: true, points });
+    } catch (error) {
+        console.error('Erreur getAdminAchatsChartsByDate :', error);
+        res.status(500).json({ message: 'Erreur interne du serveur.', success: false });
+    }
+};
+
+export const updateAchatStatusAdmin = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const authReq = req as AuthenticatedRequest;
+        if (!authReq.admin?.id) {
+            res.status(401).json({ message: 'Non autorisé.', success: false });
+            return;
+        }
+
+        const { id } = req.params;
+        const { statut, datePaiement, dateLivraison, numeroTransaction } = req.body;
+
+        if (!id || !Types.ObjectId.isValid(id)) {
+            res.status(400).json({ message: 'ID achat invalide.', success: false });
+            return;
+        }
+
+        const updateData: Record<string, unknown> = {};
+        if (statut) updateData.statut = statut;
+        if (datePaiement) updateData.datePaiement = datePaiement;
+        if (dateLivraison) updateData.dateLivraison = dateLivraison;
+        if (numeroTransaction) updateData.numeroTransaction = numeroTransaction;
+
+        const updatedAchat = await AchatModel.findByIdAndUpdate(id, updateData, {
+            new: true,
+            runValidators: true
+        })
+            .populate('voiture', 'marque modelCar year price image')
+            .populate('commande', 'statut montantTotal dateCommande');
+
+        if (!updatedAchat) {
+            res.status(404).json({ message: 'Achat non trouvé.', success: false });
+            return;
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Statut achat mis à jour avec succès.',
+            achat: updatedAchat
+        });
+    } catch (error) {
+        console.error('Erreur updateAchatStatusAdmin :', error);
+        res.status(500).json({ message: 'Erreur interne du serveur.', success: false });
     }
 };

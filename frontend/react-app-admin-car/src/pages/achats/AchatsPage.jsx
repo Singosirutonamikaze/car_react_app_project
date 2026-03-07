@@ -14,6 +14,23 @@ const formatCurrency = (value) => {
   }).format(amount);
 };
 
+const normalizeStatus = (value) =>
+  String(value || "")
+    .normalize("NFD")
+    .replaceAll(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+const STATUS_FILTER_MAP = {
+  tous: null,
+  en_attente: "en attente",
+  confirme: "confirme",
+  annule: "annule",
+  paye: "paye",
+  livre: "livre",
+  termine: "termine",
+};
+
 const formatDate = (value) => {
   if (!value) {
     return "-";
@@ -28,13 +45,25 @@ function AchatsPage() {
   const { achats, loading, changeStatus } = useAchats();
   const [selectedStatus, setSelectedStatus] = useState("Tous");
 
-  const statusOptions = ["Tous", "en_attente", "confirme", "annule"];
+  const statusOptions = [
+    "Tous",
+    "en_attente",
+    "confirme",
+    "paye",
+    "livre",
+    "termine",
+    "annule",
+  ];
 
   const filtered = useMemo(() => {
-    if (selectedStatus === "Tous") {
+    const filterStatus =
+      STATUS_FILTER_MAP[String(selectedStatus || "").toLowerCase()] ?? null;
+    if (!filterStatus) {
       return achats;
     }
-    return achats.filter((item) => item?.statut === selectedStatus);
+    return achats.filter(
+      (item) => normalizeStatus(item?.statut) === filterStatus,
+    );
   }, [achats, selectedStatus]);
 
   let content = null;
@@ -60,14 +89,17 @@ function AchatsPage() {
         <div className="grid grid-cols-1 gap-4 md:hidden">
           {filtered.map((achat) => {
             const id = achat?._id || achat?.id;
+            const commandeClient = achat?.commande?.client;
             const clientName =
               achat?.client?.nom ||
               achat?.client?.name ||
+              `${commandeClient?.name || ""} ${commandeClient?.surname || ""}`.trim() ||
               achat?.nomClient ||
               "-";
             const carName =
-              achat?.voiture?.marque && achat?.voiture?.modele
-                ? `${achat.voiture.marque} ${achat.voiture.modele}`
+              achat?.voiture?.marque &&
+              (achat?.voiture?.modele || achat?.voiture?.modelCar)
+                ? `${achat.voiture.marque} ${achat.voiture.modele || achat.voiture.modelCar}`
                 : achat?.car?.name ||
                   achat?.voiture?.name ||
                   achat?.modeleVoiture ||
@@ -86,7 +118,9 @@ function AchatsPage() {
 
                 <p className="text-sm text-slate-300">Montant</p>
                 <p className="mb-2 text-slate-100 font-semibold">
-                  {formatCurrency(achat?.montant || achat?.prixTotal)}
+                  {formatCurrency(
+                    achat?.prixAchat || achat?.montant || achat?.prixTotal,
+                  )}
                 </p>
 
                 <p className="text-sm text-slate-300">Date</p>
@@ -100,13 +134,16 @@ function AchatsPage() {
 
                 <div className="mt-3">
                   <select
-                    value={achat?.statut || "en_attente"}
+                    value={normalizeStatus(achat?.statut) || "en attente"}
                     onChange={(e) => changeStatus(id, e.target.value)}
                     className="filter-control w-full"
                   >
-                    <option value="en_attente">en_attente</option>
-                    <option value="confirme">confirme</option>
-                    <option value="annule">annule</option>
+                    <option value="En attente">En attente</option>
+                    <option value="Confirmé">Confirmé</option>
+                    <option value="Payé">Payé</option>
+                    <option value="Livré">Livré</option>
+                    <option value="Terminé">Terminé</option>
+                    <option value="Annulé">Annulé</option>
                   </select>
                 </div>
               </article>
@@ -128,14 +165,17 @@ function AchatsPage() {
           <tbody>
             {filtered.map((achat) => {
               const id = achat?._id || achat?.id;
+              const commandeClient = achat?.commande?.client;
               const clientName =
                 achat?.client?.nom ||
                 achat?.client?.name ||
+                `${commandeClient?.name || ""} ${commandeClient?.surname || ""}`.trim() ||
                 achat?.nomClient ||
                 "-";
               const carName =
-                achat?.voiture?.marque && achat?.voiture?.modele
-                  ? `${achat.voiture.marque} ${achat.voiture.modele}`
+                achat?.voiture?.marque &&
+                (achat?.voiture?.modele || achat?.voiture?.modelCar)
+                  ? `${achat.voiture.marque} ${achat.voiture.modele || achat.voiture.modelCar}`
                   : achat?.car?.name ||
                     achat?.voiture?.name ||
                     achat?.modeleVoiture ||
@@ -146,7 +186,9 @@ function AchatsPage() {
                   <td className="text-slate-100">{clientName}</td>
                   <td className="text-slate-100">{carName}</td>
                   <td className="text-slate-100">
-                    {formatCurrency(achat?.montant || achat?.prixTotal)}
+                    {formatCurrency(
+                      achat?.prixAchat || achat?.montant || achat?.prixTotal,
+                    )}
                   </td>
                   <td className="text-slate-200">
                     {formatDate(achat?.createdAt || achat?.dateAchat)}
@@ -158,13 +200,16 @@ function AchatsPage() {
                   </td>
                   <td>
                     <select
-                      value={achat?.statut || "en_attente"}
+                      value={achat?.statut || "En attente"}
                       onChange={(e) => changeStatus(id, e.target.value)}
                       className="filter-control max-w-40"
                     >
-                      <option value="en_attente">en_attente</option>
-                      <option value="confirme">confirme</option>
-                      <option value="annule">annule</option>
+                      <option value="En attente">En attente</option>
+                      <option value="Confirmé">Confirmé</option>
+                      <option value="Payé">Payé</option>
+                      <option value="Livré">Livré</option>
+                      <option value="Terminé">Terminé</option>
+                      <option value="Annulé">Annulé</option>
                     </select>
                   </td>
                 </tr>

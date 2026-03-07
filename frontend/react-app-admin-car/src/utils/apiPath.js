@@ -50,9 +50,10 @@ const API_PATHS = {
     EXPORT: `/api/admin/ventes/export`,
   },
   ACHATS: {
-    GET_USER: `/api/version/achat/user/achats`,
+    GET_USER: `/api/version/achat/admin/achats`,
+    CHARTS: `/api/version/achat/admin/achats/charts`,
     CREATE: `/api/version/achat/user/achats`,
-    UPDATE_STATUS: (achatId) => `/api/version/achat/user/achats/${achatId}/status`,
+    UPDATE_STATUS: (achatId) => `/api/version/achat/admin/achats/${achatId}/status`,
     ADD_EVALUATION: (achatId) => `/api/version/achat/user/achats/${achatId}/evaluation`,
   },
   LOCATIONS: {

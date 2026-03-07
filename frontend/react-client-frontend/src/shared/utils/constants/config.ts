@@ -71,6 +71,7 @@ const API_PATHS = {
   },
   ACHATS: {
     GET_ALL: `/api/version/achat/user/achats`,
+    CHARTS: `/api/version/achat/user/achats/charts`,
     CREATE: `/api/version/achat/user/achats`,
     UPDATE_STATUS: (id: string) => `/api/version/achat/user/achats/${id}/status`,
     ADD_EVALUATION: (id: string) => `/api/version/achat/user/achats/${id}/evaluation`,

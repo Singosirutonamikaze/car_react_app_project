@@ -7,6 +7,7 @@ import AuthenticatedContent from "../../components/AuthenticatedContent";
 import EmptyState from "../../components/EmptyState";
 import PageHeader from "../../components/PageHeader";
 import usePanierData from "../../../../shared/hooks/dashboard/usePanierData";
+import useUser from "../../../../shared/hooks/user";
 import { carService } from "../../../../shared/services/car";
 import uploadService from "../../../../shared/services/upload";
 import type { Car } from "../../../../shared/types/car";
@@ -19,6 +20,7 @@ function formatCurrency(amount?: number): string {
 function PanierPage() {
   const navigate = useNavigate();
   const { displayName, isAuthenticated, isLoading, error, pendingItems, refreshAchats } = usePanierData();
+  const { toggleFavorite } = useUser();
   const [cars, setCars] = useState<Car[]>([]);
   const [carsLoading, setCarsLoading] = useState(true);
   const [pendingPage, setPendingPage] = useState(1);
@@ -79,6 +81,20 @@ function PanierPage() {
     toast.info(`Location a venir pour ${carName}. Contactez le support pour finaliser.`);
   };
 
+  const handleAddFavorite = async (carId?: string) => {
+    if (!carId) {
+      return;
+    }
+
+    try {
+      await toggleFavorite(carId);
+      toast.success("Ajoute aux favoris");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erreur lors de l'ajout aux favoris";
+      toast.error(message);
+    }
+  };
+
   let carsSectionContent: ReactNode;
   if (carsLoading) {
     carsSectionContent = <p className="client-theme-text-secondary text-sm">Chargement des voitures...</p>;
@@ -125,6 +141,12 @@ function PanierPage() {
                     className="px-3 py-2 rounded-lg text-xs border client-theme-button"
                   >
                     Commander
+                  </button>
+                  <button
+                    onClick={() => void handleAddFavorite(car._id)}
+                    className="px-3 py-2 rounded-lg text-xs border client-theme-outline-button"
+                  >
+                    Favori
                   </button>
                   <button
                     onClick={() => handleLouer(carName)}
@@ -193,7 +215,7 @@ function PanierPage() {
                   className="backdrop-blur-xl rounded-lg p-4 border client-theme-card-soft"
                 >
                   <h2 className="text-base font-semibold client-theme-text-primary">
-                    {item.voiture?.marque} {item.voiture?.modele}
+                    {item.voiture?.marque} {(item.voiture as { modele?: string; modelCar?: string })?.modele ?? (item.voiture as { modele?: string; modelCar?: string })?.modelCar ?? ""}
                   </h2>
                   <p className="client-theme-text-secondary text-sm mt-1">Statut: {item.statut}</p>
                   <p className="client-theme-value font-medium mt-2">{formatCurrency(item.prixAchat)}</p>

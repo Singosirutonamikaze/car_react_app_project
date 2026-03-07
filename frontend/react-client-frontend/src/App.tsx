@@ -12,6 +12,7 @@ import DashboardPage from './app/client-dashboard/pages/DashboardPage';
 import ProfilPage from './app/client-dashboard/pages/ProfilPage';
 import ParametresPage from './app/client-dashboard/pages/ParametresPage';
 import StatistiquesPage from './app/client-dashboard/pages/StatistiquesPage';
+import StatistiquesCourbesPage from './app/client-dashboard/pages/StatistiquesCourbesPage';
 import ContactPage from './app/presentation/pages/ContactPage';
 import AProposPage from './app/presentation/pages/AProposPage';
 import AccueilPage from './app/presentation/pages/AccueilPage';
@@ -41,6 +42,7 @@ function App() {
           <Route path={ROUTES.PROFILE} element={<ProfilPage />} />
           <Route path={ROUTES.PARAMETRES} element={<ParametresPage />} />
           <Route path={ROUTES.STATS} element={<StatistiquesPage />} />
+          <Route path={ROUTES.STATS_TRENDS} element={<StatistiquesCourbesPage />} />
           <Route path={ROUTES.CARS} element={<VoituresPage />} />
           <Route path={ROUTES.SEARCH} element={<RecherchePage />} />
           <Route path={ROUTES.LOGIN} element={<ConnexionPage />} />

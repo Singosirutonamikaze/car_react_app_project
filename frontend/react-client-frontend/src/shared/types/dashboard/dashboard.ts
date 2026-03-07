@@ -59,7 +59,7 @@ export interface AchatInfo {
   voiture: VoitureInfo;
   commande: CommandeInfo;
   prixAchat: number;
-  statut: "En attente" | "Confirme" | "Paye" | "Livre" | "Termine" | "Annule";
+  statut: "En attente" | "Confirmé" | "Payé" | "Livré" | "Terminé" | "Annulé";
   dateAchat: string;
   datePaiement?: string;
   dateLivraison?: string;
@@ -71,6 +71,17 @@ export interface AchatInfo {
     commentaire?: string;
     dateEvaluation: string;
   };
+}
+
+export interface AchatChartPoint {
+  date: string;
+  totalAchats: number;
+  totalMontant: number;
+}
+
+export interface AchatChartsResponse {
+  success: boolean;
+  points: AchatChartPoint[];
 }
 
 export interface MarqueFavorite {

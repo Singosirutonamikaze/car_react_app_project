@@ -41,6 +41,7 @@ function SideBar() {
     { path: ROUTES.CART, label: "Panier", icon: <FiShoppingCart className="w-5 h-5" /> },
     { path: ROUTES.ORDERS, label: "Commandes", icon: <FiFileText className="w-5 h-5" /> },
     { path: ROUTES.STATS, label: "Statistiques", icon: <FiBarChart2 className="w-5 h-5" /> },
+    { path: ROUTES.STATS_TRENDS, label: "Tendances", icon: <FiBarChart2 className="w-5 h-5" /> },
     { path: ROUTES.PROFILE, label: "Profil", icon: <FiUser className="w-5 h-5" /> },
     { path: ROUTES.PARAMETRES, label: "Parametres", icon: <FiSettings className="w-5 h-5" /> },
   ];

@@ -1,6 +1,15 @@
 import express from 'express';
-import { userProtect } from '../middleware/authMiddleware';
-import { addEvaluationAchat, createAchat, getUserAchats, updateAchatStatus } from '../controllers/achatControllers'
+import { adminProtect, userProtect } from '../middleware/authMiddleware';
+import {
+  addEvaluationAchat,
+  createAchat,
+  getAdminAchatsChartsByDate,
+  getAllAchatsAdmin,
+  getUserAchats,
+  getUserAchatsChartsByDate,
+  updateAchatStatusAdmin,
+  updateAchatStatus
+} from '../controllers/achatControllers'
 
 const router = express.Router();
 
@@ -31,6 +40,10 @@ const router = express.Router();
  *         $ref: '#/components/responses/Unauthorized'
  */
 router.get('/user/achats', userProtect, getUserAchats);
+router.get('/user/achats/charts', userProtect, getUserAchatsChartsByDate);
+router.get('/admin/achats', adminProtect, getAllAchatsAdmin);
+router.get('/admin/achats/charts', adminProtect, getAdminAchatsChartsByDate);
+router.put('/admin/achats/:id/status', adminProtect, updateAchatStatusAdmin);
 
 /**
  * @swagger

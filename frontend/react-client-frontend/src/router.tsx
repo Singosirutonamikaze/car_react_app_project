@@ -12,6 +12,7 @@ const ROUTES = {
     PROFILE: "/client/profil",
     ORDERS: "/client/commandes",
     STATS: "/client/statistiques",
+    STATS_TRENDS: "/client/statistiques/tendances",
     CAR_DETAILS: "/voitures/:id",
     PARAMETRES: "/client/parametres",
     LOGOUT: "/logout",

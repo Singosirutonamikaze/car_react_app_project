@@ -1,12 +1,15 @@
 import { FiBarChart2, FiHeart, FiShoppingCart, FiTruck } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
 import AuthenticatedContent from "../../components/AuthenticatedContent";
 import EmptyState from "../../components/EmptyState";
 import PageHeader from "../../components/PageHeader";
 import useAuth from "../../../../shared/hooks/auth";
 import useUser from "../../../../shared/hooks/user";
+import ROUTES from "../../../../router";
 
 function StatistiquesPage() {
+  const navigate = useNavigate();
   const { user, loading, isAuthenticated } = useAuth();
   const { enhancedUser, achats, favorites, loading: dashboardLoading } = useUser();
   const displayName = [enhancedUser?.name ?? user?.name ?? "", enhancedUser?.surname ?? user?.surname ?? ""]
@@ -52,6 +55,16 @@ function StatistiquesPage() {
           subtitle={`Bienvenue, ${displayName}`.trim()}
           icon={FiBarChart2}
         />
+
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => navigate(ROUTES.STATS_TRENDS)}
+            className="px-3 py-2 rounded-lg text-sm border client-theme-button"
+          >
+            Voir les tendances
+          </button>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <div className="rounded-lg border client-theme-card-soft p-4">

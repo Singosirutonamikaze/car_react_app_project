@@ -2,6 +2,7 @@ import { API_CONFIG, API_PATHS } from "../../utils/constants";
 import type {
   EnhancedUser,
   AchatsResponse,
+  AchatChartsResponse,
   FavorisResponse,
   UserDataResponse,
   ProfileUpdateData,
@@ -11,6 +12,8 @@ import type {
 } from "../../types/dashboard";
 
 class DashboardService {
+  private readonly payloadTooLargeMessage = "Erreur trop large";
+
   private getAuthHeaders(token: string) {
     return {
       Authorization: `Bearer ${token}`,
@@ -24,6 +27,9 @@ class DashboardService {
       headers: this.getAuthHeaders(token),
     });
     if (!response.ok) {
+      if (response.status === 413) {
+        throw new Error(this.payloadTooLargeMessage);
+      }
       throw new Error(`Erreur HTTP: ${response.status} - ${response.statusText}`);
     }
     const data = await response.json();
@@ -57,6 +63,18 @@ class DashboardService {
           hasPrevPage: false,
         },
         success: false,
+      };
+    }
+  }
+
+  async getUserAchatsChartsByDate(token: string): Promise<AchatChartsResponse> {
+    try {
+      const data = await this.makeRequest<AchatChartsResponse>(API_PATHS.ACHATS.CHARTS, token);
+      return data;
+    } catch {
+      return {
+        success: false,
+        points: [],
       };
     }
   }
@@ -101,7 +119,7 @@ class DashboardService {
     });
     if (!response.ok) {
       if (response.status === 413) {
-        throw new Error("Votre image est  trop large");
+        throw new Error(this.payloadTooLargeMessage);
       }
 
       const errorData = await response.json().catch(() => null);
@@ -189,7 +207,11 @@ class DashboardService {
 
   handleError(error: unknown): string {
     if (typeof error === "object" && error !== null && "message" in error) {
-      return (error as Error).message;
+      const message = (error as Error).message;
+      if (message.includes("413")) {
+        return this.payloadTooLargeMessage;
+      }
+      return message;
     }
     if (typeof error === "string") {
       return error;
