@@ -16,6 +16,7 @@ export interface ClientThemePalette {
 }
 
 export const CLIENT_THEME_STORAGE_KEY = "client-dashboard-theme";
+export const DEFAULT_CLIENT_THEME_ID: ClientThemeId = "graphite";
 
 export const CLIENT_THEMES: ClientThemePalette[] = [
   {
@@ -77,7 +78,11 @@ export const CLIENT_THEMES: ClientThemePalette[] = [
 ];
 
 export function getClientThemeById(themeId: string | null | undefined): ClientThemePalette {
-  return CLIENT_THEMES.find((theme) => theme.id === themeId) ?? CLIENT_THEMES[0];
+  return (
+    CLIENT_THEMES.find((theme) => theme.id === themeId) ??
+    CLIENT_THEMES.find((theme) => theme.id === DEFAULT_CLIENT_THEME_ID) ??
+    CLIENT_THEMES[0]
+  );
 }
 
 export function getStoredClientThemeId(): ClientThemeId {

@@ -11,7 +11,7 @@ function FAQSection() {
         if (title) {
             title.style.opacity = '0';
             title.style.transform = 'translateY(-20px)';
-            
+
             setTimeout(() => {
                 title.style.transition = 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
                 title.style.opacity = '1';
@@ -23,7 +23,7 @@ function FAQSection() {
             if (faq) {
                 faq.style.opacity = '0';
                 faq.style.transform = 'translateY(30px) scale(0.95)';
-                
+
                 setTimeout(() => {
                     faq.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
                     faq.style.opacity = '1';
@@ -62,24 +62,24 @@ function FAQSection() {
 
     return (
         <div className="mt-16">
-            <h2 
+            <h2
                 ref={titleRef}
-                className="text-3xl font-bold text-white text-center mb-8"
+                className="text-3xl font-bold client-theme-text-primary text-center mb-8"
             >
                 Questions fréquentes
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {faqData.map((faq, index) => (
-                    <div 
-                        key={index}
+                    <div
+                        key={faq.question}
                         ref={el => { faqRefs.current[index] = el; }}
-                        className="bg-blue-900/30 backdrop-blur-md rounded-xl p-6 border border-blue-700/30 hover:bg-blue-900/40 transition-all duration-300 group cursor-pointer hover:scale-105 hover:shadow-xl"
+                        className="client-theme-card-soft backdrop-blur-md rounded-xl p-6 border transition-all duration-300 group cursor-pointer hover:scale-105 hover:shadow-xl"
                     >
-                        <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-blue-100 transition-colors duration-300">
+                        <h3 className="text-lg font-semibold client-theme-text-primary mb-2 transition-colors duration-300">
                             {faq.question}
                         </h3>
-                        <p className="text-blue-200 group-hover:text-blue-100 transition-colors duration-300">
+                        <p className="client-theme-text-secondary transition-colors duration-300">
                             {faq.answer}
                         </p>
                     </div>

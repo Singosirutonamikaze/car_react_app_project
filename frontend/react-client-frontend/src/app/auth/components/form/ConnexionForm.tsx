@@ -5,6 +5,18 @@ import Input from "../inputs/Input";
 import useAuth from "../../../../shared/hooks/auth";
 import ROUTES from "../../../../router";
 
+type AuthFormStyle = "style1" | "style2" | "style3";
+
+const AUTH_FORM_STYLE_STORAGE_KEY = "auth-form-style";
+
+const readAuthFormStyle = (): AuthFormStyle => {
+  const stored = globalThis.localStorage?.getItem(AUTH_FORM_STYLE_STORAGE_KEY);
+  if (stored === "style1" || stored === "style2" || stored === "style3") {
+    return stored;
+  }
+  return "style1";
+};
+
 function ConnexionForm() {
   const [formData, setFormData] = useState({
     email: "",
@@ -12,8 +24,20 @@ function ConnexionForm() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedStyle, setSelectedStyle] = useState<AuthFormStyle>(readAuthFormStyle);
   const navigate = useNavigate();
   const { login } = useAuth();
+
+  const handleStyleChange = (style: AuthFormStyle) => {
+    setSelectedStyle(style);
+    globalThis.localStorage?.setItem(AUTH_FORM_STYLE_STORAGE_KEY, style);
+  };
+
+  const cardStyleClassesByVariant: Record<AuthFormStyle, string> = {
+    style1: "client-theme-card-soft rounded-[2rem]",
+    style2: "client-theme-card rounded-lg",
+    style3: "client-theme-glass-strong rounded-[1.5rem] backdrop-blur-xl",
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -68,64 +92,112 @@ function ConnexionForm() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-6">
-      <div className="bg-blue-900/30 backdrop-blur-md rounded-xl shadow-2xl border border-blue-700/30 p-8">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-white">Connexion</h2>
-          <p className="text-blue-200 mt-2">Accédez à votre compte CarHub</p>
+    <div className="w-full max-w-lg mx-auto p-3">
+      <div className="mb-3 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => handleStyleChange("style1")}
+          className={`px-3 py-1.5 text-xs border client-theme-outline-button ${selectedStyle === "style1" ? "client-theme-button" : ""}`}
+        >
+          Style 1
+        </button>
+        <button
+          type="button"
+          onClick={() => handleStyleChange("style2")}
+          className={`px-3 py-1.5 text-xs border client-theme-outline-button ${selectedStyle === "style2" ? "client-theme-button" : ""}`}
+        >
+          Style 2
+        </button>
+        <button
+          type="button"
+          onClick={() => handleStyleChange("style3")}
+          className={`px-3 py-1.5 text-xs border client-theme-outline-button ${selectedStyle === "style3" ? "client-theme-button" : ""}`}
+        >
+          Style 3
+        </button>
+      </div>
+
+      <div
+        className={`relative overflow-hidden border client-auth-form-animate ${cardStyleClassesByVariant[selectedStyle]}`}
+      >
+        {selectedStyle === "style1" && (
+          <div className="absolute -top-14 -right-12 w-44 h-44 rounded-full client-accent-bg opacity-50"></div>
+        )}
+        {selectedStyle === "style3" && (
+          <div className="absolute -bottom-14 -left-12 w-52 h-52 rounded-full client-accent-bg-strong opacity-35 blur-2xl"></div>
+        )}
+
+        <div className="client-auth-dots" aria-hidden="true">
+          <span className="client-auth-dot client-auth-dot-1"></span>
+          <span className="client-auth-dot client-auth-dot-2"></span>
+          <span className="client-auth-dot client-auth-dot-3"></span>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Input
-            label="Email"
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            error={errors.email}
-            placeholder="votre@email.com"
-            required
-          />
+        <div className={`relative z-10 ${selectedStyle === "style1" ? "grid md:grid-cols-[84px_1fr]" : ""}`}>
+          {selectedStyle === "style1" && <div className="hidden md:block border-r border-slate-500/30"></div>}
 
-          <Input
-            label="Mot de passe"
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            error={errors.password}
-            placeholder="Votre mot de passe"
-            required
-          />
+          <div className={`${selectedStyle === "style2" ? "border-l-2 border-slate-500/40" : ""} p-6 md:p-7`}>
+            <div className="mb-6">
+              <p className={`text-xs uppercase tracking-[0.22em] client-theme-text-secondary mb-2 ${selectedStyle === "style2" ? "font-bold" : "font-medium"}`}>
+                {selectedStyle === "style2" ? "Accès sécurisé" : "Espace membre"}
+              </p>
+              <h2 className="text-xl md:text-2xl font-semibold client-theme-text-primary">Connexion</h2>
+              <p className="text-sm client-theme-text-secondary mt-2">Accédez à votre compte CarHub</p>
+            </div>
 
-          <div className="flex justify-end">
-            <Link
-              to="/mot-de-passe-oublie"
-              className="text-blue-300 hover:text-blue-100 text-sm transition-colors"
-            >
-              Mot de passe oublié?
-            </Link>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <Input
+                label="Email"
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                error={errors.email}
+                placeholder="votre@email.com"
+                required
+              />
+
+              <Input
+                label="Mot de passe"
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                error={errors.password}
+                placeholder="Votre mot de passe"
+                required
+              />
+
+              <div className="flex justify-end">
+                <Link
+                  to="/mot-de-passe-oublie"
+                  className="client-theme-text-secondary hover:client-theme-text-primary text-sm transition-colors"
+                >
+                  Mot de passe oublié?
+                </Link>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-2.5 px-4 client-theme-button border font-semibold rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? "Connexion..." : "Se connecter"}
+              </button>
+            </form>
+
+            <div className="mt-5">
+              <p className="client-theme-text-secondary text-sm">
+                Pas encore de compte?{" "}
+                <Link
+                  to={ROUTES.SIGNUP}
+                  className="client-theme-text-primary font-semibold"
+                >
+                  S'inscrire
+                </Link>
+              </p>
+            </div>
           </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? "Connexion..." : "Se connecter"}
-          </button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-blue-200">
-            Pas encore de compte?{" "}
-            <Link
-              to={ROUTES.SIGNUP}
-              className="text-white font-semibold hover:text-blue-100 transition-colors"
-            >
-              S'inscrire
-            </Link>
-          </p>
         </div>
       </div>
     </div>

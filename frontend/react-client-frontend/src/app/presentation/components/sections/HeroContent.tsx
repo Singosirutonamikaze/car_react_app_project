@@ -5,9 +5,9 @@ import { FiSearch, FiArrowRight } from "react-icons/fi";
 import { gsap } from "gsap";
 
 interface HeroContentProps {
-    searchQuery: string;
-    setSearchQuery: (query: string) => void;
-    handleSearch: (e: FormEvent) => void;
+    readonly searchQuery: string;
+    readonly setSearchQuery: (query: string) => void;
+    readonly handleSearch: (e: FormEvent) => void;
 }
 
 function HeroContent({ searchQuery, setSearchQuery, handleSearch }: HeroContentProps) {
@@ -49,13 +49,15 @@ function HeroContent({ searchQuery, setSearchQuery, handleSearch }: HeroContentP
 
     return (
         <div className="flex-1 text-center lg:text-left">
-            <h1 ref={titleRef} className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
+            <h1 ref={titleRef} className="text-3xl md:text-4xl lg:text-5xl font-bold client-theme-text-primary leading-tight mb-6">
                 Trouvez la voiture
-                <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent"> parfaite </span>
+                {" "}
+                <span className="client-theme-text-secondary">parfaite</span>
+                {" "}
                 pour vous
             </h1>
 
-            <p ref={subtitleRef} className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto lg:mx-0">
+            <p ref={subtitleRef} className="text-lg client-theme-text-secondary mb-8 max-w-2xl mx-auto lg:mx-0">
                 Découvrez notre sélection exclusive de véhicules d'exception.
                 Des performances incomparables à des prix compétitifs.
             </p>
@@ -64,19 +66,19 @@ function HeroContent({ searchQuery, setSearchQuery, handleSearch }: HeroContentP
                 <div className="flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-grow">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <FiSearch className="text-blue-300" />
+                            <FiSearch className="client-theme-text-secondary" />
                         </div>
                         <input
                             type="text"
                             placeholder="Rechercher une marque, un modèle..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-4 bg-blue-900/40 backdrop-blur-md border border-blue-700/50 rounded-xl text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-12 pr-4 py-4 backdrop-blur-md border rounded-xl client-theme-input focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                         />
                     </div>
                     <button
                         type="submit"
-                        className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
+                        className="client-theme-button font-semibold py-4 px-8 rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
                     >
                         Rechercher
                         <FiArrowRight />
@@ -86,29 +88,29 @@ function HeroContent({ searchQuery, setSearchQuery, handleSearch }: HeroContentP
 
             <div ref={statsRef} className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12 max-w-2xl">
                 <div className="text-center lg:text-left">
-                    <div className="text-3xl font-bold text-white">500+</div>
-                    <div className="text-blue-200">Voitures disponibles</div>
+                    <div className="text-3xl font-bold client-theme-text-primary">500+</div>
+                    <div className="client-theme-text-secondary">Voitures disponibles</div>
                 </div>
                 <div className="text-center lg:text-left">
-                    <div className="text-3xl font-bold text-white">98%</div>
-                    <div className="text-blue-200">Clients satisfaits</div>
+                    <div className="text-3xl font-bold client-theme-text-primary">98%</div>
+                    <div className="client-theme-text-secondary">Clients satisfaits</div>
                 </div>
                 <div className="text-center lg:text-left">
-                    <div className="text-3xl font-bold text-white">25+</div>
-                    <div className="text-blue-200">Villes desservies</div>
+                    <div className="text-3xl font-bold client-theme-text-primary">25+</div>
+                    <div className="client-theme-text-secondary">Villes desservies</div>
                 </div>
             </div>
 
             <div ref={buttonsRef} className="flex flex-col sm:flex-row gap-4 mb-16">
                 <button
                     onClick={() => navigate(ROUTES.CARS)}
-                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300"
+                    className="client-theme-button font-semibold py-4 px-8 rounded-xl transition-all duration-300"
                 >
                     Explorer notre collection
                 </button>
                 <button
                     onClick={() => navigate(ROUTES.SIGNUP)}
-                    className="bg-blue-900/40 backdrop-blur-md border border-blue-700/50 hover:border-blue-500/70 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300"
+                    className="client-theme-outline-button backdrop-blur-md border font-semibold py-4 px-8 rounded-xl transition-all duration-300"
                 >
                     Créer un compte
                 </button>

@@ -6,8 +6,10 @@ interface AuthLayoutProps {
 
 function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <div className="w-full min-h-screen bg-gradient-to-b from-blue-900 via-blue-950 to-black overflow-auto flex items-center justify-center py-12">
-      <div className="w-full px-4 h-auto overflow-x-hidden">{children}</div>
+    <div className="w-full min-h-screen client-layout-gradient relative overflow-hidden flex items-center justify-center py-12">
+      <div className="absolute inset-0 auth-neuron-bg pointer-events-none"></div>
+      <div className="absolute inset-0 auth-neuron-grid pointer-events-none"></div>
+      <div className="w-full px-4 h-auto overflow-x-hidden relative z-10">{children}</div>
     </div>
   );
 }

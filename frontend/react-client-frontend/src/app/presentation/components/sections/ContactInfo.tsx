@@ -59,37 +59,37 @@ function ContactInfo() {
     ];
 
     return (
-        <div>
+        <div className="space-y-6">
             <div
                 ref={containerRef}
-                className="bg-blue-900/30 backdrop-blur-md rounded-2xl p-8 border border-blue-700/30 mb-8 hover:bg-blue-900/40 transition-all duration-300"
+                className="client-theme-card-soft backdrop-blur-md rounded-lg p-8 border transition-all duration-300"
             >
-                <h2 className="text-2xl font-bold text-white mb-6">Nos coordonnées</h2>
+                <h2 className="text-2xl font-bold client-theme-text-primary mb-6">Nos coordonnées</h2>
                 <div className="space-y-6">
                     {contactData.map((item, index) => {
                         const IconComponent = item.icon;
                         return (
                             <div
-                                key={index}
+                                key={item.title}
                                 ref={el => { itemsRef.current[index] = el; }}
                                 className="flex items-start group cursor-pointer"
                             >
-                                <div className="text-blue-400 mt-1 mr-4 group-hover:text-blue-300 transition-colors duration-300 group-hover:scale-110 transform">
+                                <div className="client-theme-text-secondary mt-1 mr-4 transition-colors duration-300 group-hover:scale-110 transform">
                                     <IconComponent className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <h3 className="text-white font-semibold group-hover:text-blue-100 transition-colors duration-300">
+                                    <h3 className="client-theme-text-primary font-semibold transition-colors duration-300">
                                         {item.title}
                                     </h3>
                                     {item.content.map((line, lineIndex) => (
                                         <p
-                                            key={lineIndex}
-                                            className={`text-blue-200 group-hover:text-blue-100 transition-colors duration-300 ${lineIndex === item.content.length - 1 && item.content.length > 2 ? 'text-sm' : ''
+                                            key={`${item.title}-${line}`}
+                                            className={`client-theme-text-secondary transition-colors duration-300 ${lineIndex === item.content.length - 1 && item.content.length > 2 ? 'text-sm' : ''
                                                 }`}
                                         >
                                             {lineIndex === 0 && item.content.length > 1 && line.includes('<br />')
                                                 ? line.split('<br />').map((part, i) => (
-                                                    <span key={i}>{part}{i < line.split('<br />').length - 1 && <br />}</span>
+                                                    <span key={`${item.title}-${part}`}>{part}{i < line.split('<br />').length - 1 && <br />}</span>
                                                 ))
                                                 : line
                                             }

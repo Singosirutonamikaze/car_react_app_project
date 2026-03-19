@@ -1,25 +1,25 @@
 import type { InputHTMLAttributes } from "react";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  label: string;
-  error?: string;
+  readonly label: string;
+  readonly error?: string;
 }
 
-function Input({ label, error, id, ...props }: InputProps) {
-  const inputId = id || `input-${label.replace(/\s+/g, "-").toLowerCase()}`;
+function Input({ label, error, id, ...props }: Readonly<InputProps>) {
+  const inputId = id || `input-${label.replaceAll(" ", "-").toLowerCase()}`;
 
   return (
     <div className="space-y-2">
       <label
         htmlFor={inputId}
-        className="block text-sm font-medium text-blue-100"
+        className="block text-sm font-medium client-theme-label"
       >
         {label}
       </label>
 
       <input
         id={inputId}
-        className={`w-full px-4 py-3 bg-blue-800/40 border rounded-lg text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${error ? "border-red-500" : "border-blue-600/50"
+        className={`w-full px-4 py-3 border rounded-full client-theme-input focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent transition-all ${error ? "border-red-500" : ""
           }`}
         {...props}
       />

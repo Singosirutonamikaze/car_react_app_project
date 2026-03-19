@@ -35,16 +35,16 @@ function HeroImage() {
     return (
         <div className="flex-1 flex justify-center lg:justify-end">
             <div ref={containerRef} className="relative w-full max-w-lg">
-                <div ref={imageRef} className="bg-blue-900/30 backdrop-blur-md rounded-2xl p-8 border border-blue-700/30 transform rotate-3">
-                    <div className="bg-gradient-to-br from-blue-800 to-blue-900 rounded-xl overflow-hidden h-80 flex items-center justify-center">
+                <div ref={imageRef} className="client-theme-card-soft backdrop-blur-md rounded-2xl p-8 border transform rotate-3">
+                    <div className="rounded-xl overflow-hidden h-80 flex items-center justify-center client-layout-gradient">
                         <div className="text-center p-6">
-                           <img src={ImageHeroSection} alt="Image de la section Hero" />
+                            <img src={ImageHeroSection} alt="Visuel principal de la section Hero" />
                         </div>
                     </div>
                 </div>
 
-                <div ref={decor1Ref} className="absolute -bottom-6 -left-6 w-24 h-24 bg-cyan-500/20 rounded-xl backdrop-blur-md border border-cyan-400/30 transform -rotate-12"></div>
-                <div ref={decor2Ref} className="absolute -top-6 -right-6 w-20 h-20 bg-blue-500/20 rounded-xl backdrop-blur-md border border-blue-400/30 transform rotate-12"></div>
+                <div ref={decor1Ref} className="absolute -bottom-6 -left-6 w-24 h-24 rounded-xl backdrop-blur-md border transform -rotate-12 client-theme-hero-decor-soft"></div>
+                <div ref={decor2Ref} className="absolute -top-6 -right-6 w-20 h-20 rounded-xl backdrop-blur-md border transform rotate-12 client-theme-hero-decor-strong"></div>
             </div>
         </div>
     );

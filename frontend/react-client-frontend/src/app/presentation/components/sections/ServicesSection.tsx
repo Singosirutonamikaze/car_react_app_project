@@ -12,7 +12,7 @@ function ServicesSection() {
         if (title) {
             title.style.opacity = '0';
             title.style.transform = 'translateY(-30px)';
-            
+
             setTimeout(() => {
                 title.style.transition = 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
                 title.style.opacity = '1';
@@ -24,7 +24,7 @@ function ServicesSection() {
             if (service) {
                 service.style.opacity = '0';
                 service.style.transform = 'translateY(50px) scale(0.9)';
-                
+
                 setTimeout(() => {
                     service.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
                     service.style.opacity = '1';
@@ -59,26 +59,26 @@ function ServicesSection() {
 
     return (
         <div className="mb-16">
-            <h2 
+            <h2
                 ref={titleRef}
-                className="text-3xl font-bold text-white text-center mb-12 hover:text-blue-100 transition-colors duration-300"
+                className="text-3xl font-bold client-theme-text-primary text-center mb-12 transition-colors duration-300"
             >
                 Nos Services
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {services.map((service, index) => (
-                    <div 
-                        key={index} 
+                    <div
+                        key={service.title}
                         ref={el => { servicesRef.current[index] = el; }}
-                        className="bg-blue-900/30 backdrop-blur-md rounded-xl p-6 border border-blue-700/30 hover:border-blue-500/50 transition-all duration-300 group cursor-pointer hover:scale-105 hover:bg-blue-900/40 hover:shadow-xl"
+                        className="client-theme-card-soft backdrop-blur-md rounded-xl p-6 border transition-all duration-300 group cursor-pointer hover:scale-105 hover:shadow-xl"
                     >
-                        <div className="text-blue-400 mb-4 flex justify-center group-hover:text-blue-300 transition-colors duration-300 group-hover:scale-110 transform">
+                        <div className="client-theme-text-secondary mb-4 flex justify-center transition-colors duration-300 group-hover:scale-110 transform">
                             {service.icon}
                         </div>
-                        <h3 className="text-xl font-semibold text-white mb-2 text-center group-hover:text-blue-100 transition-colors duration-300">
+                        <h3 className="text-xl font-semibold client-theme-text-primary mb-2 text-center transition-colors duration-300">
                             {service.title}
                         </h3>
-                        <p className="text-blue-200 text-center group-hover:text-blue-100 transition-colors duration-300">
+                        <p className="client-theme-text-secondary text-center transition-colors duration-300">
                             {service.description}
                         </p>
                     </div>

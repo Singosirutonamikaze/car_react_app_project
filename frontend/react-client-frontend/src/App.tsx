@@ -1,8 +1,10 @@
 import ROUTES from './router';
 import './index.css';
 import './styles/globals.css';
+import { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
+import { applyStoredClientTheme } from './shared/utils';
 
 //Pages
 import CommandesPage from './app/client-dashboard/pages/CommandesPage';
@@ -27,6 +29,10 @@ import NotFoundPage from './app/common/NotFoundPage';
 import { AuthProvider } from './shared/contexts/UserProvider';
 
 function App() {
+  useEffect(() => {
+    applyStoredClientTheme();
+  }, []);
+
   return (
     <>
       <AuthProvider>

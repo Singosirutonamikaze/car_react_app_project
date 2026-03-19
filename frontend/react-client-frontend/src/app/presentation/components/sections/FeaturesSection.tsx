@@ -46,16 +46,16 @@ function FeaturesSection() {
     ];
 
     return (
-        <div ref={sectionRef} className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20 pt-10 border-t border-blue-800/30">
+        <div ref={sectionRef} className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20 pt-10 border-t client-border-t">
             {features.map((feature, index) => (
                 <div
-                    key={index}
+                    key={feature.title}
                     ref={el => { featureRefs.current[index] = el; }}
-                    className="bg-blue-900/30 backdrop-blur-md rounded-xl p-6 border border-blue-700/30 hover:border-blue-500/50 transition-all duration-300"
+                    className="client-theme-card-soft backdrop-blur-md rounded-xl p-6 border transition-all duration-300"
                 >
-                    <div className="text-blue-400 mb-4">{feature.icon}</div>
-                    <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
-                    <p className="text-blue-200">{feature.description}</p>
+                    <div className="client-theme-text-secondary mb-4">{feature.icon}</div>
+                    <h3 className="text-xl font-semibold client-theme-text-primary mb-2">{feature.title}</h3>
+                    <p className="client-theme-text-secondary">{feature.description}</p>
                 </div>
             ))}
         </div>
