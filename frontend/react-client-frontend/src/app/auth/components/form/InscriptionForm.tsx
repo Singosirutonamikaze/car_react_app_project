@@ -121,21 +121,21 @@ function InscriptionForm() {
           onClick={() => handleStyleChange("style1")}
           className={`px-3 py-1.5 text-xs border client-theme-outline-button ${selectedStyle === "style1" ? "client-theme-button" : ""}`}
         >
-          Style 1
+          1
         </button>
         <button
           type="button"
           onClick={() => handleStyleChange("style2")}
           className={`px-3 py-1.5 text-xs border client-theme-outline-button ${selectedStyle === "style2" ? "client-theme-button" : ""}`}
         >
-          Style 2
+          2
         </button>
         <button
           type="button"
           onClick={() => handleStyleChange("style3")}
           className={`px-3 py-1.5 text-xs border client-theme-outline-button ${selectedStyle === "style3" ? "client-theme-button" : ""}`}
         >
-          Style 3
+          3
         </button>
       </div>
 

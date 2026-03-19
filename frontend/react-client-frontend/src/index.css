@@ -347,6 +347,110 @@
   background-image: radial-gradient(circle at 20% 20%, var(--client-accent) 0%, transparent 45%), radial-gradient(circle at 80% 80%, var(--client-surface-strong) 0%, transparent 55%);
 }
 
+.client-loader-gradient-shift {
+  background-image: linear-gradient(135deg, var(--client-bg-to), var(--client-bg-via), var(--client-bg-from));
+}
+
+@keyframes clientLoaderCarFloat {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes clientLoaderWheelSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes clientLoaderHeadlightPulse {
+  0% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes clientLoaderProgressSweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(220%);
+  }
+}
+
+.client-loader-shell {
+  width: 100%;
+  max-width: 20rem;
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.client-loader-car-wrap {
+  width: 240px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: clientLoaderCarFloat 1.8s ease-in-out infinite;
+}
+
+.client-loader-wheel {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: clientLoaderWheelSpin 1.15s linear infinite;
+}
+
+.client-loader-headlight {
+  animation: clientLoaderHeadlightPulse 1.25s ease-in-out infinite;
+}
+
+.client-loader-progress-track {
+  width: 8.5rem;
+  height: 0.35rem;
+  border-radius: 9999px;
+  overflow: hidden;
+  background-color: var(--client-surface-strong);
+  border: 1px solid var(--client-border);
+  position: relative;
+}
+
+.client-loader-progress-bar {
+  position: absolute;
+  inset: 0;
+  background-color: var(--client-accent-strong);
+  opacity: 0.55;
+}
+
+.client-loader-progress-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(270deg, transparent, var(--client-text-primary), transparent);
+  animation: clientLoaderProgressSweep 1.4s linear infinite;
+}
+
 .client-theme-hero-decor-soft {
   background-color: var(--client-accent);
   border-color: var(--client-border);

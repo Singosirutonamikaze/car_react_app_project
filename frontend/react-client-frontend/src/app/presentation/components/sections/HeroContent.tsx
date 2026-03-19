@@ -65,15 +65,15 @@ function HeroContent({ searchQuery, setSearchQuery, handleSearch }: HeroContentP
             <form ref={searchRef} onSubmit={handleSearch} className="mb-10 max-w-2xl mx-auto lg:mx-0">
                 <div className="flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-grow">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <FiSearch className="client-theme-text-secondary" />
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                            <FiSearch className="w-5 h-5 text-slate-300" />
                         </div>
                         <input
                             type="text"
                             placeholder="Rechercher une marque, un modèle..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-4 backdrop-blur-md border rounded-xl client-theme-input focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+                            className="w-full pl-12 pr-4 py-4 backdrop-blur-md border rounded-full client-theme-input focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
                         />
                     </div>
                     <button

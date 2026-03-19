@@ -15,49 +15,46 @@ const LoaderPage = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center client-layout-gradient">
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center client-loader-gradient-shift">
       <div className="absolute inset-0 backdrop-blur-sm client-theme-loader-overlay"></div>
+      <div className="relative z-10 client-loader-shell">
+        <div className="client-loader-car-wrap">
+          <svg width="240" height="70" viewBox="0 0 240 70" xmlns="http://www.w3.org/2000/svg" aria-label="Chargement en cours">
+            <rect x="20" y="20" width="200" height="32" rx="8" fill="#5F5E5A" />
+            <rect x="20" y="36" width="200" height="8" fill="#444441" />
+            <path d="M72,20 Q84,2 102,0 L146,0 Q162,2 170,20 Z" fill="#444441" />
+            <polygon points="80,18 94,5 146,5 160,18" fill="#B4B2A9" opacity="0.6" />
 
-      <div className="relative z-10">
-        <style>{`
-          .cube { width: 60px; height: 60px; position: relative; transform-style: preserve-3d; animation: rotate 3s infinite linear; }
-          .cube .face { position: absolute; width: 60px; height: 60px; background: linear-gradient(135deg, var(--client-accent-strong), var(--client-bg-via)); border: 1px solid var(--client-border); backdrop-filter: blur(10px); }
-          .cube .front { transform: rotateY(0deg) translateZ(30px); }
-          .cube .back { transform: rotateY(180deg) translateZ(30px); background: linear-gradient(135deg, var(--client-bg-via), var(--client-bg-to)); }
-          .cube .right { transform: rotateY(90deg) translateZ(30px); background: linear-gradient(135deg, var(--client-accent), var(--client-bg-via)); }
-          .cube .left { transform: rotateY(-90deg) translateZ(30px); background: linear-gradient(135deg, var(--client-accent-strong), var(--client-bg-from)); }
-          .cube .top { transform: rotateX(90deg) translateZ(30px); background: linear-gradient(135deg, var(--client-text-secondary), var(--client-accent-strong)); }
-          .cube .bottom { transform: rotateX(-90deg) translateZ(30px); background: linear-gradient(135deg, var(--client-bg-via), var(--client-bg-to)); }
-          @keyframes rotate { 0% { transform: rotateX(0deg) rotateY(0deg); } 100% { transform: rotateX(360deg) rotateY(360deg); } }
-          .cube::before { content: ''; position: absolute; top: -10px; left: -10px; right: -10px; bottom: -10px; background: radial-gradient(circle, var(--client-accent) 0%, transparent 70%); border-radius: 10px; animation: pulse 2s ease-in-out infinite alternate; z-index: -1; }
-          @keyframes pulse { 0% { opacity: 0.4; transform: scale(1); } 100% { opacity: 0.8; transform: scale(1.1); } }
-          .progress-bar { position: relative; width: 120px; height: 4px; background: var(--client-surface); border-radius: 2px; overflow: hidden; backdrop-filter: blur(10px); border: 1px solid var(--client-border); margin: 16px auto 0; }
-          .progress-fill { height: 100%; background: linear-gradient(90deg, var(--client-accent), var(--client-accent-strong)); border-radius: 2px; animation: progress 5s linear forwards; }
-          @keyframes progress { 0% { width: 0%; } 100% { width: 100%; } }
-          @media (max-width: 480px) {
-            .cube { width: 45px; height: 45px; }
-            .cube .face { width: 45px; height: 45px; }
-            .cube .front { transform: rotateY(0deg) translateZ(22.5px); }
-            .cube .back { transform: rotateY(180deg) translateZ(22.5px); }
-            .cube .right { transform: rotateY(90deg) translateZ(22.5px); }
-            .cube .left { transform: rotateY(-90deg) translateZ(22.5px); }
-            .cube .top { transform: rotateX(90deg) translateZ(22.5px); }
-            .cube .bottom { transform: rotateX(-90deg) translateZ(22.5px); }
-            .progress-bar { width: 100px; margin-top: 14px; }
-          }
-        `}</style>
+            <ellipse cx="224" cy="32" rx="18" ry="8" fill="#FAC775" opacity="0.25" className="client-loader-headlight" />
+            <rect x="198" y="26" width="20" height="12" rx="3" fill="#FAC775" className="client-loader-headlight" />
+            <rect x="208" y="26" width="10" height="12" rx="3" fill="#EF9F27" className="client-loader-headlight" />
 
-        <div className="cube">
-          <div className="face front"></div>
-          <div className="face back"></div>
-          <div className="face right"></div>
-          <div className="face left"></div>
-          <div className="face top"></div>
-          <div className="face bottom"></div>
+            <rect x="22" y="26" width="18" height="12" rx="3" fill="#E24B4A" />
+
+            <rect x="140" y="22" width="18" height="4" rx="2" fill="#888780" />
+            <rect x="100" y="22" width="32" height="4" rx="2" fill="#888780" />
+
+            <circle cx="68" cy="48" r="19" fill="#1a1a1a" />
+            <circle cx="68" cy="48" r="12" fill="#444441" />
+            <circle cx="68" cy="48" r="5" fill="#B4B2A9" />
+            <g className="client-loader-wheel">
+              <line x1="68" y1="29" x2="68" y2="67" stroke="#5F5E5A" strokeWidth="2.5" />
+              <line x1="49" y1="48" x2="87" y2="48" stroke="#5F5E5A" strokeWidth="2.5" />
+            </g>
+
+            <circle cx="172" cy="48" r="19" fill="#1a1a1a" />
+            <circle cx="172" cy="48" r="12" fill="#444441" />
+            <circle cx="172" cy="48" r="5" fill="#B4B2A9" />
+            <g className="client-loader-wheel">
+              <line x1="172" y1="29" x2="172" y2="67" stroke="#5F5E5A" strokeWidth="2.5" />
+              <line x1="153" y1="48" x2="191" y2="48" stroke="#5F5E5A" strokeWidth="2.5" />
+            </g>
+          </svg>
         </div>
 
-        <div className="progress-bar">
-          <div className="progress-fill"></div>
+        <div className="client-loader-progress-track" aria-hidden="true">
+          <div className="client-loader-progress-bar"></div>
+          <div className="client-loader-progress-glow"></div>
         </div>
       </div>
     </div>
